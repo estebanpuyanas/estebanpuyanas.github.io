@@ -1,0 +1,59 @@
+body {
+    background-color: #f0f0f0;
+    font-family: 'Proxima Nova', sans-serif;
+}
+
+section {
+    text-align: center;
+    margin: 40px 0;
+}
+
+section img {
+    width: 25%;
+    max-width: 25%;
+    height: auto;
+    border-radius: 10px;
+    display: block;
+    margin: 0 auto 20px;
+}
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.image-container img {
+    max-width: 300px;
+    height: auto;
+    border-radius: 0px;
+    margin: 0 5px;
+}
+
+.emoji-section p {
+    margin-bottom: 0;
+    margin-top: 0;
+    letter-spacing: -1.5rem;
+}
+
+.emoji-section h2 {
+    margin-top: 0.5rem;
+}
+
+section a {
+    display: block;
+    font-size: 1.2em;
+    color: #000000;
+    text-decoration: none;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+header {
+    text-align: center;
+}
+
+footer {
+    text-align: center;
+}
