@@ -8,17 +8,17 @@
     <link rel="stylesheet" href="assets/css/styles.css">
 
     <style>
-        header h1 {
-            text-align: center;
-        }
+
         body {
-            background-color: #b3b1af;
+            background-color: #f0f0f0;
             font-family: 'Proxima Nova', sans-serif;
         }
+
         section {
             text-align: center;
             margin: 40px 0;
         }
+
         section img {
             width: 25%;
             max-width: 25%;
@@ -27,13 +27,36 @@
             display: block;
             margin: 0 auto 20px;
         }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0px;
+        }
+
+        .image-container img {
+            max-width: 300px;
+            height: auto;
+            border-radius: 0px;
+            margin: 0 5px;
+        }
+
         section a {
             display: block;
             font-size: 1.2em;
-            color: #000;
+            color: #000000;
             text-decoration: none;
             margin-top: 10px;
             font-weight: bold;
+        }
+
+        header {
+            text-align: center; 
+        }
+
+        footer {
+            text-align: center;
         }
     </style> 
 </head>
@@ -41,21 +64,27 @@
 <body>
     <header>
         <h1>Hi, I'm Esteban! Welcome to my personal website!</h1>
+    </header>
+
+    <main>
+
         <p> I'm an aspiring software engineer currently pursuing a combined B.S. in Computer Science & Philosophy at Northeastern University in Boston, MA. <br>
             I have a passion for technology and strong interest in any work around software development and data engineering! <br>
             Outside of work, I love working out, playing squash and chess, and listening to music! <br>
             Check some of the links below, where you can find more information about my education, experience, projects, and my music blog, where I talk about my favorite albums! 
         </p>
-    </header>
 
-    <main>
+
         <section>
             <img src="assets/images/Personal-photo.jpg" alt="Picture of Esteban">
             <h2><a href="about.html">About Me</a></h2>
         </section>
         
         <section>
-            <img src="assets/images/boston.jpg" alt="Boston City View">
+            <div class="image-container">
+                <img src="assets/images/blair-logo.svg" alt="University Logo">
+                <img src="assets/images/NU-logo.png" alt="High School Logo">
+            </div>
             <h2><a href="education.html">Education</a></h2>
         </section>
         
@@ -65,7 +94,7 @@
         </section>
         
         <section>
-            <img src="assets/images/code.jpg" alt="Coding Screenshot">
+            <img src="assets/images/esteban-octocat.png" alt="Coding Screenshot">
             <h2><a href="projects.html">Projects</a></h2>
         </section>
         
