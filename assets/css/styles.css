@@ -9,8 +9,8 @@ section {
 }
 
 section img {
-    width: 25%;
-    max-width: 25%;
+    width: auto;
+    max-width: 300px;
     height: auto;
     border-radius: 10px;
     display: block;
@@ -42,12 +42,13 @@ section img {
 }
 
 section a {
-    display: block;
-    font-size: 1.2em;
-    color: #000000;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
-    margin-top: 10px;
     font-weight: bold;
+    color: #000;
+    width: auto; /* ensures link isn't the full width */
 }
 
 header {
