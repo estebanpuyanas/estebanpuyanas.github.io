@@ -1,9 +1,17 @@
-/*/ 
-GENERAL STYLES TO BE APPLIED TO ALL PAGES
-/*/
+/*==================================================
+  GLOBAL STYLES — apply to every page unless overridden
+==================================================*/
+
+/* Base */
 body {
     background-color: #f0f0f0;
     font-family: 'Proxima Nova', sans-serif;
+}
+
+/* Layout */
+header,
+footer {
+    text-align: center;
 }
 
 section {
@@ -11,6 +19,7 @@ section {
     margin: 40px 0;
 }
 
+/* Images inside any <section> */
 section img {
     width: auto;
     max-width: 475px;
@@ -20,30 +29,7 @@ section img {
     margin: 0 auto 20px;
 }
 
-.image-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-}
-
-.image-container img {
-    max-width: 300px;
-    height: auto;
-    border-radius: 0px;
-    margin: 0 5px;
-}
-
-.emoji-section p {
-    margin-bottom: 0;
-    margin-top: 0;
-    letter-spacing: -1.5rem;
-}
-
-.emoji-section h2 {
-    margin-top: 0.5rem;
-}
-
+/* Links inside any <section> */
 section a {
     display: inline-flex;
     flex-direction: column;
@@ -51,13 +37,126 @@ section a {
     text-decoration: none;
     font-weight: bold;
     color: #000;
-    width: auto; /* ensures link isn't the full width */
+    width: auto; /* ensures link isn’t full-width */
 }
 
-header {
+
+/*==================================================
+  UTILITIES & COMPONENTS
+==================================================*/
+
+/* — Image Gallery / Side-by-side images — */
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+.image-container img {
+    max-width: 300px;
+    height: auto;
+    border-radius: 0;
+    margin: 0 5px;
+}
+
+/* — Emoji Banner — */
+.emoji-section p {
+    margin: 0;
+    letter-spacing: -1.5rem;
+}
+.emoji-section h2 {
+    margin-top: 0.5rem;
+}
+
+
+/*==================================================
+  EXPERIENCE SECTION
+==================================================*/
+
+/* Override the centered <section> default */
+#experience {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 60px;
+    padding: 0 20px;
+}
+
+.experience-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    /* new: make it a column flex container + center each <li> */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.experience-item {
+    margin-bottom: 1.5rem;
+
+    /* new: center any inline-level children (your <a>) */
     text-align: center;
 }
 
-footer {
-    text-align: center;
+
+.experience-item a {
+    display: flex;               
+    flex-direction: column;      
+    align-items: center;         
+    text-align: center;         
+  }
+
+/* Hover/focus highlight */
+.experience-item a:focus {
+    background-color: #e8e8e8;
+}
+
+/* Logo size & spacing */
+.company-logo {
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin-right: 0 0 1rem;
+    flex-shrink: 0;
+    justify-content: center;
+}
+
+/* Wrap text vertically */
+.experience-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Company name */
+.company-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Role & description */
+.position {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #555;
+}
+
+
+/*==================================================
+  RESPONSIVE TWEAKS
+==================================================*/
+
+@media (max-width: 600px) {
+    .company-logo {
+        width: 36px;
+        height: 36px;
+    }
+    .company-name {
+        font-size: 1rem;
+    }
+    .position {
+        font-size: 0.9rem;
+    }
 }
