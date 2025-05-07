@@ -32,55 +32,56 @@
     <p>&copy; 2025 Esteban Puyana Salazar. All rights reserved.</p>
   </footer>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const repoList = document.querySelector('.projects-list');
-
-      fetch('repos.json')
-        .then(res => {
-          if (!res.ok) throw new Error(`Status ${res.status}`);
-          return res.json();
-        })
-        .then(repos => {
-          // if repos is empty, show a message
-          if (!repos.length) {
-            repoList.innerHTML = '<li>No public repos found.</li>';
-            return;
-          }
-
-          repos.forEach(repo => {
-            const li = document.createElement('li');
-            li.className = 'project-item';
-
-            const updated = new Date(repo.updated_at)
-              .toLocaleDateString('en-US', {
-                year:  'numeric',
-                month: 'short',
-                day:   'numeric'
-              });
-
-            li.innerHTML = `
-              <a href="${repo.html_url}" target="_blank" rel="noopener">
-                <img
-                  src="assets/images/${repo.name}-logo.png"
-                  alt="${repo.name} logo"
-                  class="project-logo"
-                />
-                <div class="project-content">
-                  <h3>${repo.name}</h3>
-                  <p>${repo.description || ''}</p>
-                  <small>Last updated: ${updated}</small>
-                </div>
-              </a>
-            `;
-            repoList.appendChild(li);
+    <!-- at the bottom of projects.html, replace your existing script with this -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const username = 'estebanpuyanas';
+        const repoList = document.querySelector('.projects-list');
+  
+        fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`)
+          .then(res => {
+            if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+            return res.json();
+          })
+          .then(repos => {
+            if (!repos.length) {
+              repoList.innerHTML = '<li>No public repos found.</li>';
+              return;
+            }
+  
+            repos.forEach(repo => {
+              const updated = new Date(repo.updated_at)
+                .toLocaleDateString('en-US', {
+                  year:  'numeric',
+                  month: 'short',
+                  day:   'numeric'
+                });
+  
+              const li = document.createElement('li');
+              li.className = 'project-item';
+              li.innerHTML = `
+                <a href="${repo.html_url}" target="_blank" rel="noopener">
+                  <img
+                    src="assets/images/${repo.name}-logo.png"
+                    alt="${repo.name} logo"
+                    class="project-logo"
+                  />
+                  <div class="project-content">
+                    <h3>${repo.name}</h3>
+                    <p>${repo.description || ''}</p>
+                    <small>Last updated: ${updated}</small>
+                  </div>
+                </a>`;
+              repoList.appendChild(li);
+            });
+          })
+          .catch(err => {
+            console.error(err);
+            repoList.innerHTML = '<li>Could not load projects.</li>';
           });
-        })
-        .catch(err => {
-          console.error('Failed to load repos.json:', err);
-          repoList.innerHTML = '<li>Failed to load projects.</li>';
-        });
-    });
-  </script>
+      });
+    </script>
+  
+
 </body>
 </html>

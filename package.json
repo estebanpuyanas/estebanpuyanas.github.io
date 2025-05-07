@@ -1,9 +1,5 @@
 {
-  "name": "personal-website", 
+  "name": "personal-website",
   "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "dotenv": "^16.5.0",
-    "node-fetch": "^3.3.2"
-  }
+  "type": "module"
 }
