@@ -1,14 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects Section - Currently Under Construction</title>
-    <link rel="stylesheet" href="assets/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta 
+    name="viewport" 
+    content="width=device-width, initial-scale=1.0" 
+  />
+  <title>Esteban Puyana – Projects</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
-    <h2 style="text-align: center;"><strong>Work in Progress</strong></h2>
-    <p style="text-align: center; font-size: 4rem;">🚧 🏗️ 🚜 👷🏼‍♂️ 🛠️ ⚙️ 🚧</p>
-    <p style="text-align: center;">Thank you for your patience—more content coming soon!</p>
+  <header>
+    <h1>Esteban Puyana – Personal Website</h1>
+    <nav>
+      <a href="index.html">Home</a> |
+      <a href="experience.html">Experience</a>
+    </nav>
+  </header>
+
+  <section id="projects">
+    <h2>Open-Source Projects</h2>
+    <ul class="projects-list">
+      <!-- repos will be injected here -->
+    </ul>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Esteban Puyana Salazar. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const repoList = document.querySelector('.projects-list');
+
+      fetch('repos.json')
+        .then(res => {
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          return res.json();
+        })
+        .then(repos => {
+          // if repos is empty, show a message
+          if (!repos.length) {
+            repoList.innerHTML = '<li>No public repos found.</li>';
+            return;
+          }
+
+          repos.forEach(repo => {
+            const li = document.createElement('li');
+            li.className = 'project-item';
+
+            const updated = new Date(repo.updated_at)
+              .toLocaleDateString('en-US', {
+                year:  'numeric',
+                month: 'short',
+                day:   'numeric'
+              });
+
+            li.innerHTML = `
+              <a href="${repo.html_url}" target="_blank" rel="noopener">
+                <img
+                  src="assets/images/${repo.name}-logo.png"
+                  alt="${repo.name} logo"
+                  class="project-logo"
+                />
+                <div class="project-content">
+                  <h3>${repo.name}</h3>
+                  <p>${repo.description || ''}</p>
+                  <small>Last updated: ${updated}</small>
+                </div>
+              </a>
+            `;
+            repoList.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error('Failed to load repos.json:', err);
+          repoList.innerHTML = '<li>Failed to load projects.</li>';
+        });
+    });
+  </script>
 </body>
 </html>

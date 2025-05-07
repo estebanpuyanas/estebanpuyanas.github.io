@@ -3,3 +3,6 @@
 
 # Environment vars
 .env
+
+# Node modules
+node_modules
