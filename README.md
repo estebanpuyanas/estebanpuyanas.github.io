@@ -1,1 +1,1 @@
-# WORK IN PROGRESS CHECK BACK LATER :) #
+Welcome to my personal website! This is a simple `HTML + CSS + Vanilla JS` webapp I wrote as my personal portfolio website. I have never done any frontend web design, so I thought this would be a great opportunity to learn html and css/JS. In here you will be able to find information about me, my education, prior, experience, personal projects, and my music blog, where I talk about some of my favorite artists and albums.   

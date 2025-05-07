@@ -1,4 +1,8 @@
-// scripts/fetch-repos.js
+/**
+ * Simple Node.js script to dynamically fetch list of repositories from my GitHub account and display them
+ * by updating the `repos.json` file in the project root.
+ * projects.html displays them according to the last project update date.
+ */
 import fs      from 'fs';
 import path    from 'path';
 import fetch   from 'node-fetch';
