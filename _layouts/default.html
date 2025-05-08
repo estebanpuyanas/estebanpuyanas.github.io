@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ page.title }} – {{ site.title }}</title>
+  <!-- use `relative_url` so it works whether your site is at / or /repo-name/ -->
+  <link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="{{ '/'           | relative_url }}">Home</a> |
+      <a href="{{ '/experience.html' | relative_url }}">Experience</a> |
+      <a href="{{ '/projects.html'   | relative_url }}">Projects</a> |
+      <a href="{{ '/music-blog/'      | relative_url }}">Music Blog</a>
+    </nav>
+  </header>
+
+  <main>
+    {{ content }}
+  </main>
+
+  <footer>
+    <p>© 2025 Esteban Puyana Salazar</p>
+  </footer>
+</body>
+</html>
