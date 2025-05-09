@@ -9,3 +9,6 @@ node_modules
 
 # _post template file
 /_posts/2025-05-08-template.md
+
+# Site build 
+_site
