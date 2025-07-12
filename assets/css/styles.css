@@ -217,6 +217,22 @@ section a {
 ==================================================*/
 
 @media (max-width: 600px) {
+    /* Make images smaller on mobile */
+    section img {
+        width: 250px;
+        height: 167px;
+    }
+    
+    .image-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .image-container img {
+        width: 200px;
+        height: 133px;
+    }
+    
     .company-logo {
         width: 36px;
         height: 36px;
@@ -226,5 +242,169 @@ section a {
     }
     .position {
         font-size: 0.9rem;
+    }
+}
+
+/*==================================================
+  BLOG/MARKDOWN CONTENT STYLES
+==================================================*/
+
+/* Main content area for blog posts */
+.post-content, 
+article,
+.content {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+    font-family: 'Georgia', 'Times New Roman', serif; /* Change this to your preferred font */
+    font-size: 18px; /* Adjust base font size */
+    color: #333;
+}
+
+/* Blog post headings */
+.post-content h1,
+article h1 {
+    font-family: 'Proxima Nova', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem 0;
+    color: #222;
+}
+
+.post-content h2,
+article h2 {
+    font-family: 'Proxima Nova', sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 1.4rem 0 0.8rem 0;
+    color: #333;
+}
+
+.post-content h3,
+article h3 {
+    font-family: 'Proxima Nova', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 1.2rem 0 0.6rem 0;
+    color: #444;
+}
+
+/* Blog post paragraphs */
+.post-content p,
+article p {
+    margin: 1.2rem 0;
+    text-align: justify;
+    font-size: 18px; /* Paragraph font size */
+}
+
+/* Emphasized text (italic) */
+.post-content em,
+article em {
+    font-style: italic;
+    color: #555;
+}
+
+/* Strong text (bold) */
+.post-content strong,
+article strong {
+    font-weight: 700;
+    color: #222;
+}
+
+/* Lists in blog posts */
+.post-content ul,
+.post-content ol,
+article ul,
+article ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+}
+
+.post-content li,
+article li {
+    margin: 0.5rem 0;
+    font-size: 18px;
+}
+
+/* Blockquotes */
+.post-content blockquote,
+article blockquote {
+    border-left: 4px solid #ddd;
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background-color: #f9f9f9;
+    font-style: italic;
+    font-size: 17px;
+}
+
+/* Code blocks and inline code */
+.post-content code,
+article code {
+    background-color: #f4f4f4;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.post-content pre,
+article pre {
+    background-color: #f4f4f4;
+    padding: 1rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+/* Post meta information (date, etc.) */
+.post-meta {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-style: italic;
+}
+
+.post-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 1rem;
+}
+
+.post-header h1 {
+    margin-bottom: 0.5rem;
+}
+
+/* Blog-specific responsive design */
+@media (max-width: 768px) {
+    .post-content,
+    article,
+    .content {
+        padding: 15px;
+        font-size: 16px;
+    }
+    
+    .post-content h1,
+    article h1 {
+        font-size: 2rem;
+    }
+    
+    .post-content h2,
+    article h2 {
+        font-size: 1.6rem;
+    }
+    
+    .post-content h3,
+    article h3 {
+        font-size: 1.3rem;
+    }
+    
+    .post-content p,
+    .post-content li,
+    article p,
+    article li {
+        font-size: 16px;
     }
 }
