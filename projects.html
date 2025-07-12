@@ -26,7 +26,7 @@ title: "Projects"
     <p>&copy; 2025 Esteban Puyana Salazar. All rights reserved.</p>
   </footer>
 
-    <!-- at the bottom of projects.html, replace your existing script with this -->
+  <!-- This script automatically loads my github projects in the order of most recent comimts. -->
     <script>
       document.addEventListener('DOMContentLoaded', () => {
         const username = 'estebanpuyanas';
@@ -57,6 +57,7 @@ title: "Projects"
                 <a href="${repo.html_url}" target="_blank" rel="noopener">
                   <img
                     src="assets/images/${repo.name}-logo.png"
+                    onerror="this.onerror=null; this.src='assets/images/stock-repo-logo.png';"
                     alt="${repo.name} logo"
                     class="project-logo"
                   />
