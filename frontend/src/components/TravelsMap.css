@@ -1,0 +1,104 @@
+/* ─── Outer shell ────────────────────────────────────────────── */
+.tmap-outer {
+  max-width: 900px;
+  margin: 2rem auto 3rem;
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  /* Prevents the SVG from making the wrapper overflow during resize */
+  contain: layout;
+}
+
+.tmap-outer--fs,
+.tmap-outer:fullscreen {
+  max-width: 100vw;
+  width: 100vw;
+  margin: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.tmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 41px;           /* keep in sync with HEADER_H in component */
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tmap-counter {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ─── Controls ───────────────────────────────────────────────── */
+.tmap-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tmap-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: opacity 0.15s;
+}
+
+.tmap-btn:hover { opacity: 0.7; }
+
+.tmap-divider {
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+}
+
+/* ─── Canvas ─────────────────────────────────────────────────── */
+.tmap-canvas {
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/* In fullscreen the SVG fills all available height */
+.tmap-outer--fs .tmap-canvas,
+.tmap-outer:fullscreen .tmap-canvas {
+  flex: 1;
+}
+
+/* ─── Hover label ────────────────────────────────────────────── */
+.tmap-tooltip {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border: 1px solid;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.14s, transform 0.14s;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.tmap-tooltip--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
