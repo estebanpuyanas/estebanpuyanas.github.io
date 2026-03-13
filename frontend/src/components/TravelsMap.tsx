@@ -1,16 +1,21 @@
 /**
- * TravelsMap — MapTiler SDK world map.
+ * TravelsMap — MapTiler Dataviz world map powered by MapLibre GL JS.
  *
- * Props
- *   markers       { id, label, lat, lng, photos[] }[]
- *   onMarkerClick called when a marker is clicked
+ * maplibre-gl ships a UMD bundle that is incompatible with every Vite/esbuild
+ * pre-bundling strategy (it has "type":"module" in package.json but is not
+ * actual ESM). We avoid the entire module system by loading it as a classic
+ * <script> tag via Vite's ?url import, which copies the raw file as a static
+ * asset (works in dev and production). Once loaded, the UMD factory runs in
+ * global scope and sets window.maplibregl normally.
  */
 import { useRef, useEffect, useCallback, useState } from 'react'
-import * as maptilersdk from '@maptiler/sdk'
-import '@maptiler/sdk/dist/maptiler-sdk.css'
+import type * as MaplibreGL from 'maplibre-gl'
+// ?url gives us the asset path without processing the file as an ES module
+import maplibreJSUrl  from 'maplibre-gl/dist/maplibre-gl.js?url'
+import maplibreCSSUrl from 'maplibre-gl/dist/maplibre-gl.css?url'
 import './TravelsMap.css'
 
-/* ─── Public types ───────────────────────────────────────────── */
+/* ─── Types ──────────────────────────────────────────────────── */
 export interface TravelMarker {
   id:     string
   label:  string
@@ -24,13 +29,47 @@ interface Props {
   onMarkerClick?: (marker: TravelMarker) => void
 }
 
+/* Extend Window so TypeScript knows maplibregl is a global after script load */
+declare global {
+  interface Window {
+    maplibregl: typeof MaplibreGL
+  }
+}
+
 /* ─── Config ─────────────────────────────────────────────────── */
-const API_KEY = import.meta.env.VITE_MAPTILER_API_KEY as string
-
-// MapTiler Dataviz — clean, label-forward cartographic style
+const API_KEY   = import.meta.env.VITE_MAPTILER_API_KEY as string
 const STYLE_URL = `https://api.maptiler.com/maps/dataviz-v4/style.json?key=${API_KEY}`
+const MAX_BOUNDS: [[number, number], [number, number]] = [[-180, -85.05], [180, 85.05]]
 
-const MAX_BOUNDS: maptilersdk.LngLatBoundsLike = [[-180, -85.05], [180, 85.05]]
+/* ─── Load maplibre-gl as a classic script (once per page) ──── */
+let maplibreLoaded: Promise<void> | null = null
+
+function loadMaplibre(): Promise<void> {
+  if (maplibreLoaded) return maplibreLoaded
+
+  maplibreLoaded = new Promise((resolve, reject) => {
+    if (window.maplibregl) { resolve(); return }
+
+    // Inject maplibre-gl CSS
+    if (!document.querySelector('link[data-maplibre-css]')) {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = maplibreCSSUrl
+      link.setAttribute('data-maplibre-css', '')
+      document.head.appendChild(link)
+    }
+
+    // Inject maplibre-gl JS as a classic script (not type="module")
+    // so the UMD factory runs in global scope and sets window.maplibregl
+    const script = document.createElement('script')
+    script.src = maplibreJSUrl
+    script.onload  = () => resolve()
+    script.onerror = () => reject(new Error('Failed to load maplibre-gl'))
+    document.head.appendChild(script)
+  })
+
+  return maplibreLoaded
+}
 
 /* ─── Icons ──────────────────────────────────────────────────── */
 function IconExpand() {
@@ -50,10 +89,10 @@ function IconCompress() {
 
 /* ─── Component ──────────────────────────────────────────────── */
 export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
-  const outerRef  = useRef<HTMLDivElement>(null)   // fullscreen target
-  const canvasRef = useRef<HTMLDivElement>(null)   // MapTiler mounts here
-  const mapRef    = useRef<maptilersdk.Map | null>(null)
-  const mtMarkers = useRef<maptilersdk.Marker[]>([])
+  const outerRef  = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const mapRef    = useRef<MaplibreGL.Map | null>(null)
+  const mtMarkers = useRef<MaplibreGL.Marker[]>([])
 
   const [fullscreen, setFs] = useState(false)
 
@@ -69,54 +108,65 @@ export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
     else await document.exitFullscreen()
   }, [])
 
-  /* ── Initialise map (runs once) ────────────────────────────── */
+  /* ── Initialise map ─────────────────────────────────────────── */
   useEffect(() => {
     if (!canvasRef.current || mapRef.current) return
 
-    maptilersdk.config.apiKey = API_KEY
+    let cancelled = false
+    let ro: ResizeObserver | null = null
 
-    const map = new maptilersdk.Map({
-      container:          canvasRef.current,
-      style:              STYLE_URL,
-      center:             [0, 20],
-      zoom:               2,
-      minZoom:            1.5,
-      maxZoom:            10,
-      maxBounds:          MAX_BOUNDS,
-      renderWorldCopies:  false,
-      // Disable built-in controls — we provide our own zoom buttons
-      navigationControl:  false,
-      geolocateControl:   false,
-      // Keep attribution compact (required by OSM licence)
-      attributionControl: { compact: true },
-    })
+    // setTimeout(0) is the standard workaround for React 18 StrictMode:
+    // StrictMode runs mount→cleanup→remount synchronously. The cleanup fires
+    // before this timer, cancelling it, so only the real (second) mount
+    // actually initialises the map — avoiding a double WebGL context error.
+    const timer = setTimeout(() => {
+      if (cancelled || !canvasRef.current) return
 
-    mapRef.current = map
+      loadMaplibre()
+        .then(() => {
+          if (cancelled || !canvasRef.current) return
 
-    /* Resize map whenever the canvas div changes size (window resize, etc.) */
-    const ro = new ResizeObserver(() => map.resize())
-    ro.observe(canvasRef.current)
+          const map = new window.maplibregl.Map({
+            container:          canvasRef.current,
+            style:              STYLE_URL,
+            center:             [0, 20],
+            zoom:               2,
+            minZoom:            1.5,
+            maxZoom:            10,
+            maxBounds:          MAX_BOUNDS,
+            renderWorldCopies:  false,
+            attributionControl: { compact: true },
+          })
+
+          mapRef.current = map
+
+          ro = new ResizeObserver(() => map.resize())
+          ro.observe(canvasRef.current!)
+        })
+        .catch((err) => console.error('[TravelsMap] init failed:', err))
+    }, 0)
 
     return () => {
-      ro.disconnect()
-      map.remove()
+      cancelled = true
+      clearTimeout(timer)
+      ro?.disconnect()
+      mapRef.current?.remove()
       mapRef.current = null
     }
-  }, []) // intentionally empty — map is created once
+  }, [])
 
-  /* Resize after fullscreen CSS transitions settle */
+  /* Resize after fullscreen transitions settle */
   useEffect(() => {
     const t = setTimeout(() => mapRef.current?.resize(), 150)
     return () => clearTimeout(t)
   }, [fullscreen])
 
-  /* ── Sync markers whenever the prop changes ────────────────── */
+  /* ── Sync markers ───────────────────────────────────────────── */
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
     const attach = () => {
-      // Remove any existing markers
       mtMarkers.current.forEach(m => m.remove())
       mtMarkers.current = []
 
@@ -129,7 +179,7 @@ export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
           onMarkerClick?.(data)
         })
 
-        const m = new maptilersdk.Marker({ element: el, anchor: 'center' })
+        const m = new window.maplibregl.Marker({ element: el, anchor: 'center' })
           .setLngLat([data.lng, data.lat])
           .addTo(map)
 
@@ -137,12 +187,8 @@ export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
       })
     }
 
-    // Map style might not be loaded yet on first render
-    if (map.isStyleLoaded()) {
-      attach()
-    } else {
-      map.once('load', attach)
-    }
+    if (map.isStyleLoaded()) attach()
+    else map.once('load', attach)
 
     return () => {
       mtMarkers.current.forEach(m => m.remove())
@@ -150,14 +196,13 @@ export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
     }
   }, [markers, onMarkerClick])
 
-  /* ── Zoom buttons ──────────────────────────────────────────── */
+  /* ── Zoom buttons ───────────────────────────────────────────── */
   const zoomIn  = useCallback(() => mapRef.current?.zoomIn({ duration: 300 }),  [])
   const zoomOut = useCallback(() => mapRef.current?.zoomOut({ duration: 300 }), [])
 
   return (
     <div ref={outerRef} className={`tmap-outer${fullscreen ? ' tmap-outer--fs' : ''}`}>
 
-      {/* ── Header ── */}
       <div className="tmap-header">
         <span className="tmap-counter">
           {markers.length === 0
@@ -174,7 +219,6 @@ export default function TravelsMap({ markers = [], onMarkerClick }: Props) {
         </div>
       </div>
 
-      {/* ── Map canvas — MapTiler mounts inside this div ── */}
       <div ref={canvasRef} className="tmap-canvas" />
 
     </div>
