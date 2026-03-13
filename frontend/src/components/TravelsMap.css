@@ -1,0 +1,110 @@
+/* ─── Outer shell ────────────────────────────────────────────── */
+.tmap-outer {
+  max-width: 900px;
+  margin: 2rem auto 3rem;
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.tmap-outer--fs,
+.tmap-outer:fullscreen {
+  max-width: 100vw;
+  width: 100vw;
+  margin: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.tmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 41px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tmap-counter {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ─── Controls ───────────────────────────────────────────────── */
+.tmap-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tmap-btn {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tmap-btn:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.tmap-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-light);
+  margin: 0 4px;
+}
+
+/* ─── Map canvas ─────────────────────────────────────────────── */
+.tmap-canvas {
+  /* Responsive height — roughly 2:1 aspect ratio for world maps */
+  height: clamp(360px, 45vw, 500px);
+  width: 100%;
+}
+
+.tmap-outer--fs .tmap-canvas,
+.tmap-outer:fullscreen .tmap-canvas {
+  flex: 1;
+  height: calc(100vh - 41px);
+}
+
+/* ─── MapTiler attribution — keep it visible but unobtrusive ─── */
+.tmap-canvas .maplibregl-ctrl-attrib,
+.tmap-canvas .maplibregl-ctrl-bottom-right {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+}
+
+/* ─── Custom marker dot ──────────────────────────────────────── */
+.tmap-marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.tmap-marker-dot:hover {
+  transform: scale(1.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
