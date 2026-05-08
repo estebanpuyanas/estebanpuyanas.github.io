@@ -5,7 +5,7 @@
 
 .scrobble-layout {
   display: grid;
-  grid-template-columns: auto 1px 1fr;
+  grid-template-columns: 1fr 1px auto;
   gap: 0 2.5rem;
   align-items: start;
 }
@@ -26,17 +26,119 @@
   align-self: stretch;
 }
 
-/* ─── Currently playing ──────────────────────────────────────── */
+/* ─── History section (left) ─────────────────────────────────── */
+.scrobble-history {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.scrobble-history-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* ─── History items ──────────────────────────────────────────── */
+.scrobble-hist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.scrobble-hist-item--empty {
+  visibility: hidden;
+}
+
+.scrobble-hist-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  border-radius: 3px;
+  background: var(--bg-3);
+}
+
+.scrobble-hist-name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scrobble-hist-meta {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scrobble-hist-time {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-3);
+}
+
+/* ─── Page nav ───────────────────────────────────────────────── */
+.scrobble-history-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.scrobble-nav-btn {
+  background: none;
+  border: 1px solid var(--border-light);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 3px;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.scrobble-nav-btn:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.scrobble-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.scrobble-nav-page {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-3);
+}
+
+/* ─── Currently playing (right) ─────────────────────────────── */
 .scrobble-current {
   display: flex;
   flex-direction: column;
-  width: 240px;
+  width: 220px;
 }
 
 .scrobble-current-art-wrap {
   position: relative;
-  width: 240px;
-  height: 240px;
+  width: 220px;
+  height: 220px;
   margin-bottom: 1rem;
 }
 
@@ -77,7 +179,7 @@
 }
 
 .scrobble-rec::before {
-  content: '';
+  content: "";
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -87,75 +189,21 @@
 }
 
 @keyframes recPulse {
-  0%, 100% { opacity: 1;   box-shadow: 0 0 0 0   rgba(195, 64, 67, 0.5); }
-  50%       { opacity: 0.5; box-shadow: 0 0 0 5px rgba(195, 64, 67, 0);   }
-}
-
-/* ─── History section ────────────────────────────────────────── */
-.scrobble-history {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.scrobble-history-row {
-  display: flex;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 0.75rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-light) transparent;
-}
-
-.scrobble-history-row::-webkit-scrollbar       { height: 3px; }
-.scrobble-history-row::-webkit-scrollbar-track  { background: transparent; }
-.scrobble-history-row::-webkit-scrollbar-thumb  { background: var(--border-light); border-radius: 2px; }
-
-/* ─── History items ──────────────────────────────────────────── */
-.scrobble-history-item {
-  width: 130px;
-  height: 130px;
-  border: 1px solid transparent;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  border-radius: 3px;
-  overflow: hidden;
-  opacity: 0.6;
-  transition: opacity 0.2s ease, border-color 0.2s ease;
-}
-
-.scrobble-history-item:hover {
-  opacity: 0.9;
-}
-
-.scrobble-history-item--selected {
-  border-color: var(--accent);
-  opacity: 1;
-}
-
-.scrobble-history-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  background: var(--bg-3);
-}
-
-/* ─── History info panel ─────────────────────────────────────── */
-.scrobble-history-info {
-  min-height: 3.75rem;
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(195, 64, 67, 0.5);
+  }
+  50% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 5px rgba(195, 64, 67, 0);
+  }
 }
 
 /* ─── Shared text ────────────────────────────────────────────── */
 .scrobble-name {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 400;
   color: var(--text);
   letter-spacing: 0.01em;
@@ -165,12 +213,6 @@
   font-family: var(--font-body);
   font-size: 0.82rem;
   color: var(--text-2);
-}
-
-.scrobble-time {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  color: var(--text-3);
 }
 
 /* ─── Controls row ───────────────────────────────────────────── */
@@ -195,7 +237,9 @@
   cursor: pointer;
   border-radius: 3px;
   letter-spacing: 0.04em;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .scrobble-btn:hover:not(:disabled) {
@@ -224,7 +268,6 @@
   font-size: 0.65rem;
   color: var(--text-3);
   letter-spacing: 0.03em;
-  margin-left: auto;
 }
 
 /* ─── Spin animation for refresh icon ───────────────────────── */
@@ -234,7 +277,9 @@
 }
 
 @keyframes scrobbleSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Empty state ────────────────────────────────────────────── */
@@ -246,10 +291,16 @@
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .scrobble-history-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
   .scrobble-layout {
     grid-template-columns: 1fr;
-    gap: 2rem 0;
+    gap: 2.5rem 0;
   }
 
   .scrobble-divider {
@@ -263,5 +314,9 @@
   .scrobble-current-art-wrap {
     width: 180px;
     height: 180px;
+  }
+
+  .scrobble-history-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
