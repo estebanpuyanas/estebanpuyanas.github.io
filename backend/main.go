@@ -7,27 +7,44 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"lastfm/api/internal/cloudinary"
 	"lastfm/api/internal/handler"
 	"lastfm/api/internal/service"
 )
 
 func main() {
+
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, reading from environment")
 	}
 
-	apiKey := os.Getenv("LASTFM_API_KEY")
-	username := os.Getenv("LASTFM_USERNAME")
+	lastFMAPIKey := os.Getenv("LASTFM_API_KEY")
+	lastFMUsername := os.Getenv("LASTFM_USERNAME")
 
-	if apiKey == "" || username == "" {
+	if lastFMAPIKey == "" || lastFMUsername == "" {
 		log.Fatal("LASTFM_API_KEY and LASTFM_USERNAME must be set")
 	}
 
-	lastfmSvc := service.NewLastFMService(apiKey, username)
+	lastfmSvc := service.NewLastFMService(lastFMAPIKey, lastFMUsername)
 	lastfmHandler := handler.NewLastFMHandler(lastfmSvc)
+
+	cloudinaryCloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
+	cloudinaryAPIKey := os.Getenv("CLOUDINARY_API_KEY")
+	cloudinaryAPISecret := os.Getenv("CLOUDINARY_API_SECRET")
+	if cloudinaryCloudName == "" || cloudinaryAPIKey == "" || cloudinaryAPISecret == "" {
+		log.Println("warning: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET not set — travel pins unavailable")
+	}
+
+	cloudinarySvc, err := cloudinary.NewCloudinaryService(cloudinaryCloudName, cloudinaryAPIKey, cloudinaryAPISecret)
+	if err != nil {
+		log.Fatalf("failed to initialize Cloudinary: %v", err)
+	}
+	travelPinSvc := service.NewTravelPinService(cloudinarySvc)
+	travelPinHandler := handler.NewTravelPinHandler(travelPinSvc)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
+	mux.HandleFunc("GET /api/travel/pins", travelPinHandler.GetAllPins)
 
 	port := os.Getenv("PORT")
 	if port == "" {

@@ -1,16 +1,12 @@
-import './index.css'
-import { useNavBar } from './hooks/useNavBar'
-import { useHeroSection } from './hooks/useHeroSection'
+import "./index.css";
+import NavBar from "./components/NavBar";
+import HeroSection from "./components/HeroSection";
 
 export default function App() {
-  const { nav, mobileMenu } = useNavBar()
-  const hero = useHeroSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
-      {hero}
+      <NavBar />
+      <HeroSection />
     </>
-  )
+  );
 }

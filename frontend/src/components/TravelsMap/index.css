@@ -1,0 +1,128 @@
+/* ─── Outer shell ────────────────────────────────────────────── */
+.tmap-outer {
+  /* Horizontal margin lets users scroll past the map without accidentally zooming it */
+  margin: 10px 14px;
+  overflow: hidden;
+}
+
+.tmap-outer--fs,
+.tmap-outer:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+.tmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 41px;
+  background: var(--bg-2);
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tmap-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tmap-label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tmap-counter {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ─── Controls ───────────────────────────────────────────────── */
+.tmap-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.tmap-btn {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tmap-btn:hover {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.tmap-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-light);
+  margin: 0 4px;
+}
+
+/* ─── Map canvas ─────────────────────────────────────────────── */
+.tmap-canvas {
+  /* Full viewport minus nav, header bar, and the 10px top+bottom margins */
+  height: calc(100vh - var(--nav-height) - 41px - 20px);
+  width: 100%;
+  /* Page background fills the ~9% side gaps (noWrap+poles-fit zoom) — blends invisibly */
+  background: var(--bg);
+}
+
+.tmap-outer--fs .tmap-canvas,
+.tmap-outer:fullscreen .tmap-canvas {
+  flex: 1;
+  height: calc(100vh - 41px);
+}
+
+/* ─── Leaflet attribution ────────────────────────────────────── */
+.tmap-canvas .leaflet-control-attribution {
+  font-family: var(--font-mono) !important;
+  font-size: 0.5rem !important;
+  background: var(--overlay-bg) !important;
+  color: var(--text-3) !important;
+  border-radius: 0 !important;
+}
+
+.tmap-canvas .leaflet-control-attribution a {
+  color: var(--text-3) !important;
+}
+
+/* ─── Marker dots (CircleMarker SVG) ─────────────────────────── */
+.tmap-marker-circle path {
+  fill: var(--accent);
+  fill-opacity: 1;
+  stroke: var(--bg-2);
+  stroke-width: 2px;
+  transition: fill 0.15s;
+}
+
+.tmap-marker-circle:hover path {
+  fill: var(--accent-light);
+}

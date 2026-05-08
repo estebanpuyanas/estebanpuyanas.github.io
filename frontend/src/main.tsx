@@ -1,17 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import './index.css'
-import App from './App.tsx'
-import EducationPage from './pages/EducationPage.tsx'
-import ExperiencePage from './pages/ExperiencePage.tsx'
-import ProjectsPage from './pages/ProjectsPage.tsx'
-import MusicPage from './pages/MusicPage.tsx'
-import BlogPostPage from './pages/BlogPostPage.tsx'
-import AboutPage from './pages/AboutPage.tsx'
-import TravelsPage from './pages/TravelsPage.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./index.css";
+import App from "./App.tsx";
+import EducationPage from "./components/EducationPage";
+import ExperiencePage from "./components/ExperiencePage";
+import ProjectsPage from "./components/ProjectsPage";
+import MusicPage from "./components/MusicPage";
+import BlogPostPage from "./components/BlogPostPage";
+import AboutPage from "./components/AboutPage";
+import TravelsPage from "./components/TravelsPage";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
@@ -26,4 +26,4 @@ createRoot(document.getElementById('root')!).render(
       </Routes>
     </BrowserRouter>
   </StrictMode>,
-)
+);
