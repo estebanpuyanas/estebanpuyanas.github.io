@@ -1,6 +1,7 @@
 /* ─── Outer shell ────────────────────────────────────────────── */
 .tmap-outer {
-  width: 100%;
+  /* Horizontal margin lets users scroll past the map without accidentally zooming it */
+  margin: 10px 14px;
   overflow: hidden;
 }
 
@@ -87,9 +88,11 @@
 
 /* ─── Map canvas ─────────────────────────────────────────────── */
 .tmap-canvas {
-  /* Fill viewport: full height minus fixed nav and the header bar above */
-  height: calc(100vh - var(--nav-height) - 41px);
+  /* Full viewport minus nav, header bar, and the 10px top+bottom margins */
+  height: calc(100vh - var(--nav-height) - 41px - 20px);
   width: 100%;
+  /* Page background fills the ~9% side gaps (noWrap+poles-fit zoom) — blends invisibly */
+  background: var(--bg);
 }
 
 .tmap-outer--fs .tmap-canvas,
