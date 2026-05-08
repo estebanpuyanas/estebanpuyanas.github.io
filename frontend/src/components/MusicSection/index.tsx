@@ -1,6 +1,6 @@
-import { useInView } from "../hooks/useInView";
-import BlogPostItem from "./BlogPostItem";
-import { BLOG_POSTS } from "../data/blogPosts";
+import { useInView } from "../../hooks/useInView";
+import BlogPostItem from "../BlogPostItem";
+import { BLOG_POSTS } from "../../data/blogPosts";
 
 export default function MusicSection() {
   const ref = useInView();

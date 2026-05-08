@@ -8,7 +8,7 @@ import {
 } from "react-leaflet";
 import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import "./TravelsMap.css";
+import "./index.css";
 
 export interface TravelMarker {
   id: string;

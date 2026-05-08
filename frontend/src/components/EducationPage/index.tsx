@@ -1,6 +1,6 @@
-import NavBar from "../components/NavBar";
-import Footer from "../components/Footer";
-import EducationSection from "../components/EducationSection";
+import NavBar from "../NavBar";
+import Footer from "../Footer";
+import EducationSection from "../EducationSection";
 
 export default function EducationPage() {
   return (

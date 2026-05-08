@@ -1,5 +1,5 @@
-import { useInView } from "../hooks/useInView";
-import EducationCard from "./EducationCard";
+import { useInView } from "../../hooks/useInView";
+import EducationCard from "../EducationCard";
 
 const EDUCATION = [
   {

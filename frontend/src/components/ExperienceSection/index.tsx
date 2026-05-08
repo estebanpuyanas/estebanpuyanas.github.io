@@ -1,5 +1,5 @@
-import { useInView } from "../hooks/useInView";
-import ExperienceItem from "./ExperienceItem";
+import { useInView } from "../../hooks/useInView";
+import ExperienceItem from "../ExperienceItem";
 
 const EXPERIENCES = [
   {

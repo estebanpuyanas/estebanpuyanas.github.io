@@ -1,4 +1,4 @@
-import { GhIcon, ArrowRight } from "./Icons";
+import { GhIcon, ArrowRight } from "../Icons";
 
 interface GitHubRepo {
   id: number;

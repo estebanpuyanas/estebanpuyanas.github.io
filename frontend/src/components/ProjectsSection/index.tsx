@@ -1,6 +1,6 @@
-import { useInView } from '../hooks/useInView'
-import { useProjectsSection } from '../hooks/useProjectsSection'
-import ProjectCard from './ProjectCard'
+import { useInView } from '../../hooks/useInView'
+import { useProjectsSection } from '../../hooks/useProjectsSection'
+import ProjectCard from '../ProjectCard'
 
 export default function ProjectsSection() {
   const ref = useInView()

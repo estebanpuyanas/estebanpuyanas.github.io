@@ -1,6 +1,6 @@
-import NavBar from "../components/NavBar";
-import Footer from "../components/Footer";
-import ExperienceSection from "../components/ExperienceSection";
+import NavBar from "../NavBar";
+import Footer from "../Footer";
+import ExperienceSection from "../ExperienceSection";
 
 export default function ExperiencePage() {
   return (

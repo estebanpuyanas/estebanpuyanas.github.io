@@ -1,6 +1,6 @@
-import NavBar from "../components/NavBar";
-import Footer from "../components/Footer";
-import AboutSection from "../components/AboutSection";
+import NavBar from "../NavBar";
+import Footer from "../Footer";
+import AboutSection from "../AboutSection";
 
 export default function AboutPage() {
   return (

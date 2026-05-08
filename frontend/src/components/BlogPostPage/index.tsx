@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import NavBar from "../components/NavBar";
-import { BLOG_POSTS } from "../data/blogPosts";
-import Footer from "../components/Footer";
+import NavBar from "../NavBar";
+import { BLOG_POSTS } from "../../data/blogPosts";
+import Footer from "../Footer";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();

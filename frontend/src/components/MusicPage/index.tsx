@@ -1,6 +1,6 @@
-import NavBar from "../components/NavBar";
-import Footer from "../components/Footer";
-import MusicSection from "../components/MusicSection";
+import NavBar from "../NavBar";
+import Footer from "../Footer";
+import MusicSection from "../MusicSection";
 
 export default function MusicPage() {
   return (
