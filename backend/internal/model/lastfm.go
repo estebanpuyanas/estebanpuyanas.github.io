@@ -1,8 +1,5 @@
 package model
 
-// These structs mirror the Last.fm API JSON response shape.
-// Go uses struct tags (`json:"..."`) to map JSON field names to struct fields.
-
 type LastFMImage struct {
 	URL  string `json:"#text"`
 	Size string `json:"size"`
