@@ -617,6 +617,17 @@ img {
 }
 
 /* ─── Music / Blog ───────────────────────────────────────────── */
+.music-status {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-3);
+  padding: 3rem 0;
+}
+
+.music-status--error {
+  color: var(--color-error);
+}
+
 .music-inner {
   max-width: 700px;
 }

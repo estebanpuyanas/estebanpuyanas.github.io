@@ -1,9 +1,10 @@
-import { useInView } from "../../hooks/useInView";
-import BlogPostItem from "../BlogPostItem";
-import { BLOG_POSTS } from "../../data/blogPosts";
+import { useInView } from '../../hooks/useInView'
+import { useLastFM } from '../../hooks/useLastFM'
+import ScrobbleCarousel from '../ScrobbleCarousel'
 
 export default function MusicSection() {
-  const ref = useInView();
+  const ref = useInView()
+  const { tracks, loading, fetching, error, lastUpdated, loadMore, refresh, canLoadMore } = useLastFM()
 
   return (
     <section id="music" ref={ref as React.RefObject<HTMLElement>}>
@@ -12,27 +13,25 @@ export default function MusicSection() {
           // music
         </p>
 
-        <div className="music-inner">
-          <blockquote className="music-quote" data-inview data-delay="1">
-            Listening is its own
-            <br />
-            form of thinking.
-          </blockquote>
-
-          <p className="music-desc" data-inview data-delay="2">
-            Alongside code, I write about music — specifically about albums that
-            reward close attention. Each post is an attempt to put into words
-            what makes a record worth returning to. Somewhere between criticism,
-            philosophy, and liner notes.
+        {loading && (
+          <p className="music-status" data-inview>loading...</p>
+        )}
+        {error && (
+          <p className="music-status music-status--error" data-inview>
+            could not load scrobbles.
           </p>
-
-          <div className="blog-list" data-inview data-delay="3">
-            {BLOG_POSTS.map((post) => (
-              <BlogPostItem key={post.slug} post={post} />
-            ))}
-          </div>
-        </div>
+        )}
+        {!loading && !error && (
+          <ScrobbleCarousel
+            tracks={tracks}
+            fetching={fetching}
+            lastUpdated={lastUpdated}
+            onLoadMore={loadMore}
+            onRefresh={refresh}
+            canLoadMore={canLoadMore}
+          />
+        )}
       </div>
     </section>
-  );
+  )
 }
