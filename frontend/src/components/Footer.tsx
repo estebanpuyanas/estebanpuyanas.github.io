@@ -19,7 +19,9 @@ export default function Footer() {
           LinkedIn
         </a>
       </div>
-      <p className="footer-copy">© 2025 Esteban Puyana Salazar. All rights reserved.</p>
+      <p className="footer-copy">
+        © 2025 Esteban Puyana Salazar. All rights reserved.
+      </p>
     </footer>
-  )
+  );
 }

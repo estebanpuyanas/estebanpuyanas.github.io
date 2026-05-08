@@ -1,19 +1,15 @@
-import { useNavBar } from '../hooks/useNavBar'
-import { useMusicSection } from '../hooks/useMusicSection'
-import Footer from '../components/Footer'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import MusicSection from "../components/MusicSection";
 
 export default function MusicPage() {
-  const { nav, mobileMenu } = useNavBar()
-  const music = useMusicSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
-        {music}
+        <MusicSection />
       </div>
       <Footer />
     </>
-  )
+  );
 }

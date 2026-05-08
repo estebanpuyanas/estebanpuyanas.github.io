@@ -1,19 +1,15 @@
-import { useNavBar } from '../hooks/useNavBar'
-import { useAboutSection } from '../hooks/useAboutSection'
-import Footer from '../components/Footer'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import AboutSection from "../components/AboutSection";
 
 export default function AboutPage() {
-  const { nav, mobileMenu } = useNavBar()
-  const about = useAboutSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
-        {about}
+        <AboutSection />
       </div>
       <Footer />
     </>
-  )
+  );
 }

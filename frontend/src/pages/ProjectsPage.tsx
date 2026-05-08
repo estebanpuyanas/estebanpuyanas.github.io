@@ -1,19 +1,15 @@
-import { useNavBar } from '../hooks/useNavBar'
-import { useProjectsSection } from '../hooks/useProjectsSection'
-import Footer from '../components/Footer'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import ProjectsSection from "../components/ProjectsSection";
 
 export default function ProjectsPage() {
-  const { nav, mobileMenu } = useNavBar()
-  const projects = useProjectsSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
-        {projects}
+        <ProjectsSection />
       </div>
       <Footer />
     </>
-  )
+  );
 }

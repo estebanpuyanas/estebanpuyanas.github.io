@@ -1,26 +1,23 @@
-import { useNavBar } from '../hooks/useNavBar'
-import Footer from '../components/Footer'
-import TravelsMap, { type TravelMarker } from '../components/TravelsMap'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import TravelsMap, { type TravelMarker } from "../components/TravelsMap";
 
-const MARKERS: TravelMarker[] = []
+const MARKERS: TravelMarker[] = [];
 
 export default function TravelsPage() {
-  const { nav, mobileMenu } = useNavBar()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
         <TravelsMap
           label="// travels"
           markers={MARKERS}
           onMarkerClick={(marker) => {
-            console.log('marker clicked:', marker)
+            console.log("marker clicked:", marker);
           }}
         />
       </div>
       <Footer />
     </>
-  )
+  );
 }

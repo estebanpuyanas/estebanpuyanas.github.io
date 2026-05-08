@@ -1,21 +1,21 @@
-import { useParams, Link } from 'react-router-dom'
-import { useNavBar } from '../hooks/useNavBar'
-import { BLOG_POSTS } from '../data/blogPosts'
-import Footer from '../components/Footer'
+import { useParams, Link } from "react-router-dom";
+import NavBar from "../components/NavBar";
+import { BLOG_POSTS } from "../data/blogPosts";
+import Footer from "../components/Footer";
 
 export default function BlogPostPage() {
-  const { slug } = useParams<{ slug: string }>()
-  const { nav, mobileMenu } = useNavBar()
+  const { slug } = useParams<{ slug: string }>();
 
-  const post = BLOG_POSTS.find((p) => p.slug === slug)
+  const post = BLOG_POSTS.find((p) => p.slug === slug);
 
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
         <article className="section-wrapper blog-post-page">
-          <Link to="/music" className="blog-back-link">← music</Link>
+          <Link to="/music" className="blog-back-link">
+            ← music
+          </Link>
 
           {post ? (
             <>
@@ -41,5 +41,5 @@ export default function BlogPostPage() {
       </div>
       <Footer />
     </>
-  )
+  );
 }

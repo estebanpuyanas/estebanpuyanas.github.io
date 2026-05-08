@@ -1,19 +1,15 @@
-import { useNavBar } from '../hooks/useNavBar'
-import { useEducationSection } from '../hooks/useEducationSection'
-import Footer from '../components/Footer'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import EducationSection from "../components/EducationSection";
 
 export default function EducationPage() {
-  const { nav, mobileMenu } = useNavBar()
-  const education = useEducationSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
-        {education}
+        <EducationSection />
       </div>
       <Footer />
     </>
-  )
+  );
 }

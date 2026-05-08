@@ -41,9 +41,16 @@
   scrollbar-color: var(--border-light) transparent;
 }
 
-.terminal-output-area::-webkit-scrollbar       { width: 4px; }
-.terminal-output-area::-webkit-scrollbar-track  { background: transparent; }
-.terminal-output-area::-webkit-scrollbar-thumb  { background: var(--border-light); border-radius: 2px; }
+.terminal-output-area::-webkit-scrollbar {
+  width: 4px;
+}
+.terminal-output-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-output-area::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 2px;
+}
 
 /* ─── Input row ──────────────────────────────────────────────── */
 .terminal-input-row {
@@ -96,8 +103,13 @@
 }
 
 @keyframes termBlink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* ─── Output lines ───────────────────────────────────────────── */
@@ -109,12 +121,27 @@
   white-space: pre;
 }
 
-.terminal-line-blank  { height: 0.5rem; }
-.terminal-line-banner { color: var(--accent); font-size: 0.8rem; text-align: center; }
-.terminal-line-input  { color: var(--text-3); }
-.terminal-line-error  { color: #C34043; }
-.terminal-line-header { color: var(--accent-light); font-weight: 400; }
-.terminal-line-output { color: var(--text-2); }
+.terminal-line-blank {
+  height: 0.5rem;
+}
+.terminal-line-banner {
+  color: var(--accent);
+  font-size: 0.8rem;
+  text-align: center;
+}
+.terminal-line-input {
+  color: var(--text-3);
+}
+.terminal-line-error {
+  color: var(--color-error);
+}
+.terminal-line-header {
+  color: var(--accent-light);
+  font-weight: 400;
+}
+.terminal-line-output {
+  color: var(--text-2);
+}
 
 .terminal-prompt {
   color: var(--accent);

@@ -1,19 +1,15 @@
-import { useNavBar } from '../hooks/useNavBar'
-import { useExperienceSection } from '../hooks/useExperienceSection'
-import Footer from '../components/Footer'
+import NavBar from "../components/NavBar";
+import Footer from "../components/Footer";
+import ExperienceSection from "../components/ExperienceSection";
 
 export default function ExperiencePage() {
-  const { nav, mobileMenu } = useNavBar()
-  const experience = useExperienceSection()
-
   return (
     <>
-      {nav}
-      {mobileMenu}
+      <NavBar />
       <div className="page-content">
-        {experience}
+        <ExperienceSection />
       </div>
       <Footer />
     </>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import Terminal from '../components/Terminal'
+import Terminal from './Terminal'
 
-export function useHeroSection() {
+export default function HeroSection() {
   return (
     <div className="hero-wrapper">
       <Terminal />

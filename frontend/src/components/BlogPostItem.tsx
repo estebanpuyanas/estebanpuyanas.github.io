@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import type { BlogPost } from '../data/blogPosts'
+import { Link } from "react-router-dom";
+import type { BlogPost } from "../data/blogPosts";
 
 export default function BlogPostItem({ post }: { post: BlogPost }) {
   return (
@@ -18,5 +18,5 @@ export default function BlogPostItem({ post }: { post: BlogPost }) {
         <span className="blog-date">{post.date}</span>
       </div>
     </div>
-  )
+  );
 }
