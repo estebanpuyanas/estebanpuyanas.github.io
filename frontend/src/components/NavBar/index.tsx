@@ -5,8 +5,6 @@ import type { ThemeMode } from "../../hooks/useTheme";
 
 const NAV_ITEMS = [
   { label: "about", path: "/about" },
-  { label: "education", path: "/education" },
-  { label: "experience", path: "/experience" },
   { label: "projects", path: "/projects" },
   { label: "music", path: "/music" },
   { label: "travels", path: "/travels" },
