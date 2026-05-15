@@ -2,13 +2,42 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import {
   MapContainer,
   TileLayer,
-  CircleMarker,
+  Marker,
   Tooltip,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
+import L from "leaflet";
 import type { Map as LeafletMap } from "leaflet";
+
 import "leaflet/dist/leaflet.css";
 import "./index.css";
+
+const PIN_SVG = `<svg class="tmap-pin-svg" viewBox="0 0 24 32" width="24" height="32" xmlns="http://www.w3.org/2000/svg">
+  <path class="tmap-pin-body" d="M12 1C6.477 1 2 5.477 2 11c0 3.6 1.863 6.77 4.688 8.627L12 31l5.312-11.373C20.137 17.77 22 14.6 22 11c0-5.523-4.477-10-10-10z"/>
+  <circle class="tmap-pin-dot" cx="12" cy="11" r="3.5"/>
+</svg>`;
+
+const PENDING_SVG = `<svg class="tmap-pin-svg tmap-pin-svg--pending" viewBox="0 0 24 32" width="24" height="32" xmlns="http://www.w3.org/2000/svg">
+  <path class="tmap-pin-body" d="M12 1C6.477 1 2 5.477 2 11c0 3.6 1.863 6.77 4.688 8.627L12 31l5.312-11.373C20.137 17.77 22 14.6 22 11c0-5.523-4.477-10-10-10z"/>
+  <circle class="tmap-pin-dot" cx="12" cy="11" r="3.5"/>
+</svg>`;
+
+const PIN_ICON = L.divIcon({
+  className: "",
+  html: PIN_SVG,
+  iconSize: [24, 32],
+  iconAnchor: [12, 32],
+  tooltipAnchor: [0, -34],
+});
+
+const PENDING_PIN_ICON = L.divIcon({
+  className: "",
+  html: PENDING_SVG,
+  iconSize: [24, 32],
+  iconAnchor: [12, 32],
+  tooltipAnchor: [0, -34],
+});
 
 export interface TravelMarker {
   id: string;
@@ -22,6 +51,8 @@ interface Props {
   label?: string;
   markers?: TravelMarker[];
   onMarkerClick?: (marker: TravelMarker) => void;
+  onMapClick?: (lat: number, lng: number) => void;
+  pendingPin?: { lat: number; lng: number } | null;
 }
 
 const CARTO_VOYAGER =
@@ -40,6 +71,25 @@ function MapCapture({
   useEffect(() => {
     mapRef.current = map;
   }, [map, mapRef]);
+  return null;
+}
+
+function MapClickHandler({
+  onMapClick,
+  suppress,
+}: {
+  onMapClick?: (lat: number, lng: number) => void;
+  suppress: React.MutableRefObject<boolean>;
+}) {
+  useMapEvents({
+    click(e) {
+      if (suppress.current) {
+        suppress.current = false;
+        return;
+      }
+      onMapClick?.(e.latlng.lat, e.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -82,9 +132,12 @@ export default function TravelsMap({
   label,
   markers = [],
   onMarkerClick,
+  onMapClick,
+  pendingPin,
 }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
   const outerRef = useRef<HTMLDivElement>(null);
+  const suppressMapClick = useRef(false);
   const [fullscreen, setFs] = useState(false);
 
   useEffect(() => {
@@ -156,6 +209,7 @@ export default function TravelsMap({
       >
         <MapCapture mapRef={mapRef} />
         <FillWorld trigger={fullscreen} />
+        <MapClickHandler onMapClick={onMapClick} suppress={suppressMapClick} />
 
         <TileLayer
           url={CARTO_VOYAGER}
@@ -165,18 +219,32 @@ export default function TravelsMap({
         />
 
         {markers.map((m) => (
-          <CircleMarker
+          <Marker
             key={m.id}
-            center={[m.lat, m.lng]}
-            radius={6}
-            className="tmap-marker-circle"
-            eventHandlers={{ click: () => onMarkerClick?.(m) }}
+            position={[m.lat, m.lng]}
+            icon={PIN_ICON}
+            eventHandlers={{
+              click: () => {
+                suppressMapClick.current = true;
+                onMarkerClick?.(m);
+              },
+            }}
           >
-            <Tooltip direction="top" offset={[0, -10]} opacity={0.92}>
+            <Tooltip direction="top" offset={[0, -2]} opacity={0.92}>
               {m.label}
             </Tooltip>
-          </CircleMarker>
+          </Marker>
         ))}
+        {pendingPin && (
+          <Marker
+            position={[pendingPin.lat, pendingPin.lng]}
+            icon={PENDING_PIN_ICON}
+          >
+            <Tooltip direction="top" offset={[0, -2]} opacity={0.92} permanent>
+              new pin
+            </Tooltip>
+          </Marker>
+        )}
       </MapContainer>
     </div>
   );

@@ -8,43 +8,67 @@ import (
 	"github.com/joho/godotenv"
 
 	"lastfm/api/internal/cloudinary"
+	"lastfm/api/internal/db"
 	"lastfm/api/internal/handler"
 	"lastfm/api/internal/service"
 )
 
 func main() {
-
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found, reading from environment")
 	}
 
 	lastFMAPIKey := os.Getenv("LASTFM_API_KEY")
 	lastFMUsername := os.Getenv("LASTFM_USERNAME")
-
 	if lastFMAPIKey == "" || lastFMUsername == "" {
 		log.Fatal("LASTFM_API_KEY and LASTFM_USERNAME must be set")
 	}
 
-	lastfmSvc := service.NewLastFMService(lastFMAPIKey, lastFMUsername)
-	lastfmHandler := handler.NewLastFMHandler(lastfmSvc)
+	database, err := db.Open("./travels.db")
+	if err != nil {
+		log.Fatalf("failed to open database: %v", err)
+	}
+	defer database.Close()
 
 	cloudinaryCloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
 	cloudinaryAPIKey := os.Getenv("CLOUDINARY_API_KEY")
 	cloudinaryAPISecret := os.Getenv("CLOUDINARY_API_SECRET")
 	if cloudinaryCloudName == "" || cloudinaryAPIKey == "" || cloudinaryAPISecret == "" {
-		log.Println("warning: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET not set — travel pins unavailable")
+		log.Println("warning: Cloudinary env vars not set — pin images unavailable")
 	}
 
 	cloudinarySvc, err := cloudinary.NewCloudinaryService(cloudinaryCloudName, cloudinaryAPIKey, cloudinaryAPISecret)
 	if err != nil {
 		log.Fatalf("failed to initialize Cloudinary: %v", err)
 	}
-	travelPinSvc := service.NewTravelPinService(cloudinarySvc)
+
+	lastfmSvc := service.NewLastFMService(lastFMAPIKey, lastFMUsername)
+	lastfmHandler := handler.NewLastFMHandler(lastfmSvc)
+
+	travelPinSvc := service.NewTravelPinService(database, cloudinarySvc)
 	travelPinHandler := handler.NewTravelPinHandler(travelPinSvc)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
-	mux.HandleFunc("GET /api/travel/pins", travelPinHandler.GetAllPins)
+	mux.HandleFunc("/api/travel/pins", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			travelPinHandler.GetAllPins(w, r)
+		case http.MethodPost:
+			handler.AdminMiddleware(travelPinHandler.CreatePin)(w, r)
+		default:
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/travel/pins/{id}", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handler.AdminMiddleware(travelPinHandler.DeletePin)(w, r)
+		default:
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+		}
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -57,12 +81,11 @@ func main() {
 	}
 }
 
-// corsMiddleware allows requests from the frontend dev server and production origin.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
