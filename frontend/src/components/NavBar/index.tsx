@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTheme } from "../../hooks/useTheme";
+import type { ThemeMode } from "../../hooks/useTheme";
 
 const NAV_ITEMS = [
   { label: "about", path: "/about" },
@@ -10,13 +12,15 @@ const NAV_ITEMS = [
   { label: "travels", path: "/travels" },
 ];
 
+const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
+  { mode: "light", icon: "☀", label: "Light" },
+  { mode: "dark",  icon: "☾", label: "Dark"  },
+  { mode: "system", icon: "auto", label: "System" },
+];
+
 export default function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+  const { mode, setMode } = useTheme();
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -24,8 +28,6 @@ export default function NavBar() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   return (
     <>
@@ -44,30 +46,28 @@ export default function NavBar() {
           ))}
         </ul>
 
-        <button
-          className="theme-toggle"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-          title={theme === "dark" ? "蓮 Lotus" : "波 Wave"}
-        >
-          <span className="theme-pip" />
-          {theme === "dark" ? "波 Wave" : "蓮 Lotus"}
-        </button>
+        <div className="theme-switcher" role="group" aria-label="Theme">
+          {THEME_OPTIONS.map(({ mode: m, icon, label }) => (
+            <button
+              key={m}
+              className={`theme-btn${mode === m ? " theme-btn--active" : ""}`}
+              onClick={() => setMode(m)}
+              aria-label={`${label} theme`}
+              aria-pressed={mode === m}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
 
         <button
           className="nav-hamburger"
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
-          <span
-            className={`hamburger-bar${mobileOpen ? " bar-top-open" : ""}`}
-          />
-          <span
-            className={`hamburger-bar${mobileOpen ? " bar-mid-open" : ""}`}
-          />
-          <span
-            className={`hamburger-bar${mobileOpen ? " bar-bot-open" : ""}`}
-          />
+          <span className={`hamburger-bar${mobileOpen ? " bar-top-open" : ""}`} />
+          <span className={`hamburger-bar${mobileOpen ? " bar-mid-open" : ""}`} />
+          <span className={`hamburger-bar${mobileOpen ? " bar-bot-open" : ""}`} />
         </button>
       </nav>
 

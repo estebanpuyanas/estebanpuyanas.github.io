@@ -18,6 +18,14 @@ export default function Footer() {
         >
           LinkedIn
         </a>
+        <a
+          href="https://github.com/estebanpuyanas/estebanpuyanas.github.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="footer-link"
+        >
+          Source Code
+        </a>
       </div>
       <p className="footer-copy">
         © 2025 Esteban Puyana Salazar. All rights reserved.
