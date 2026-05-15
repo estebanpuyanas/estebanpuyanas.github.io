@@ -810,12 +810,12 @@ img {
 /* ─── Footer ─────────────────────────────────────────────────── */
 .footer {
   background: var(--bg-2);
-  border-top: 1px solid var(--border);
-  padding: 3rem var(--gutter);
+  border-top: 0.5px solid var(--border);
+  padding: 1rem var(--gutter);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 0.5rem;
 }
 
 .footer-links {

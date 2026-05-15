@@ -52,8 +52,7 @@ function FillWorld({ trigger }: { trigger: unknown }) {
     const t = setTimeout(() => {
       map.invalidateSize();
       const w = map.getContainer().offsetWidth;
-      // 0.3 below fill-width → ~9% dark side gap (matches page bg) → poles visible
-      const z = Math.log2(w / 256) - 0.45;
+      const z = Math.log2(w / 256) + 0.55;
       map.setMinZoom(z);
       map.setView([5, 0], z, { animate: false });
     }, 100);
