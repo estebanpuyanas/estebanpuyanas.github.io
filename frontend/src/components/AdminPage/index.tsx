@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
-import { createPin, deletePin, type Pin } from "../../services/travelPinService";
+import {
+  createPin,
+  deletePin,
+  type Pin,
+} from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
 import "./index.css";
@@ -9,13 +13,23 @@ import "./index.css";
 const TOKEN_KEY = "ep-admin-token";
 
 function getStoredToken(): string {
-  try { return localStorage.getItem(TOKEN_KEY) ?? ""; } catch { return ""; }
+  try {
+    return localStorage.getItem(TOKEN_KEY) ?? "";
+  } catch {
+    return "";
+  }
 }
+
 function storeToken(t: string) {
-  try { localStorage.setItem(TOKEN_KEY, t); } catch {}
+  try {
+    localStorage.setItem(TOKEN_KEY, t);
+  } catch {}
 }
+
 function clearToken() {
-  try { localStorage.removeItem(TOKEN_KEY); } catch {}
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {}
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -29,7 +43,12 @@ async function reverseGeocode(lat: number, lng: number) {
     const addr = data.address ?? {};
     return {
       locationName:
-        addr.city ?? addr.town ?? addr.village ?? addr.municipality ?? addr.county ?? "",
+        addr.city ??
+        addr.town ??
+        addr.village ??
+        addr.municipality ??
+        addr.county ??
+        "",
       country: addr.country ?? "",
     };
   } catch {
@@ -53,7 +72,12 @@ export default function AdminPage() {
   const { pins, addPin, removePin } = useTravelPins();
 
   const [panel, setPanel] = useState<PanelState>({ mode: "idle" });
-  const [form, setForm] = useState({ locationName: "", country: "", cloudinaryFolder: "" });
+  const [form, setForm] = useState({
+    locationName: "",
+    country: "",
+    cloudinaryFolder: "",
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
@@ -108,7 +132,12 @@ export default function AdminPage() {
     }
   };
 
-  const handleMarkerClick = (marker: { id: string; label: string; lat: number; lng: number }) => {
+  const handleMarkerClick = (marker: {
+    id: string;
+    label: string;
+    lat: number;
+    lng: number;
+  }) => {
     const pin = pins.find((p) => p.id === marker.id);
     if (!pin) return;
     setPanel({ mode: "selected", pin });
@@ -142,7 +171,8 @@ export default function AdminPage() {
       setPanel({ mode: "idle" });
       setForm({ locationName: "", country: "", cloudinaryFolder: "" });
     } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
       else setSubmitError("Failed to save pin. Try again.");
     } finally {
       setSubmitting(false);
@@ -153,7 +183,8 @@ export default function AdminPage() {
   const handleDelete = async () => {
     if (panel.mode !== "selected") return;
     const { pin } = panel;
-    if (!window.confirm(`Delete "${pin.locationName}"? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete "${pin.locationName}"? This cannot be undone.`))
+      return;
     setDeleting(true);
     try {
       await deletePin(pin.id, token);
@@ -161,7 +192,8 @@ export default function AdminPage() {
       setPanel({ mode: "idle" });
       setSubmitSuccess(`"${pin.locationName}" deleted.`);
     } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
       else setSubmitError("Failed to delete pin.");
     } finally {
       setDeleting(false);
@@ -174,9 +206,20 @@ export default function AdminPage() {
       <div className="admin-gate">
         <div className="admin-gate-box">
           <p className="admin-gate-label">// admin</p>
-          <p className="admin-gate-hint">enter your admin token to continue</p>
-          {authError && <p className="admin-gate-error">token rejected — try again</p>}
-          <form className="admin-gate-form" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+          <p className="admin-gate-hint">
+            Hmmm... Are you sure you should be here? <br /> enter your admin
+            token to continue:
+          </p>
+          {authError && (
+            <p className="admin-gate-error">token rejected — try again</p>
+          )}
+          <form
+            className="admin-gate-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
             <input
               className="admin-input"
               type="password"
@@ -187,8 +230,17 @@ export default function AdminPage() {
             />
             <button className="admin-btn admin-btn--primary" type="submit">
               unlock
+              <br />
             </button>
-            <button type="button" className="admin-btn admin-btn--ghost" onClick={() => navigate(-1)}>
+            <br />
+            <p className="admin-gate-hint">
+              Psst... if your token got rejected maybe its best you just...
+            </p>
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost"
+              onClick={() => navigate(-1)}
+            >
               ← go back
             </button>
           </form>
@@ -203,7 +255,8 @@ export default function AdminPage() {
       return (
         <div className="admin-panel-idle">
           <p className="admin-panel-idle-text">
-            click the map to drop a new pin, or click an existing pin to manage it.
+            click the map to drop a new pin, or click an existing pin to manage
+            it.
           </p>
           {submitSuccess && <p className="admin-success">{submitSuccess}</p>}
         </div>
@@ -273,10 +326,14 @@ export default function AdminPage() {
               type="text"
               placeholder={panel.geocoding ? "looking up..." : "e.g. Tokyo"}
               value={form.locationName}
-              onChange={(e) => setForm((f) => ({ ...f, locationName: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, locationName: e.target.value }))
+              }
               disabled={panel.geocoding}
             />
-            {panel.geocoding && <span className="admin-geocoding-spinner">↻</span>}
+            {panel.geocoding && (
+              <span className="admin-geocoding-spinner">↻</span>
+            )}
           </div>
         </label>
 
@@ -287,7 +344,9 @@ export default function AdminPage() {
             type="text"
             placeholder={panel.geocoding ? "looking up..." : "e.g. Japan"}
             value={form.country}
-            onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, country: e.target.value }))
+            }
             disabled={panel.geocoding}
           />
         </label>
@@ -299,7 +358,9 @@ export default function AdminPage() {
             type="text"
             placeholder="e.g. travels/tokyo"
             value={form.cloudinaryFolder}
-            onChange={(e) => setForm((f) => ({ ...f, cloudinaryFolder: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, cloudinaryFolder: e.target.value }))
+            }
           />
         </label>
 
@@ -332,12 +393,12 @@ export default function AdminPage() {
             markers={markers}
             onMapClick={handleMapClick}
             onMarkerClick={handleMarkerClick}
-            pendingPin={panel.mode === "new" ? { lat: panel.lat, lng: panel.lng } : null}
+            pendingPin={
+              panel.mode === "new" ? { lat: panel.lat, lng: panel.lng } : null
+            }
           />
         </div>
-        <div className="admin-side">
-          {renderPanel()}
-        </div>
+        <div className="admin-side">{renderPanel()}</div>
       </div>
     </div>
   );

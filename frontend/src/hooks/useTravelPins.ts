@@ -14,7 +14,8 @@ export function useTravelPins() {
   }, []);
 
   const addPin = (pin: Pin) => setPins((prev) => [...prev, pin]);
-  const removePin = (id: string) => setPins((prev) => prev.filter((p) => p.id !== id));
+  const removePin = (id: string) =>
+    setPins((prev) => prev.filter((p) => p.id !== id));
 
   return { pins, loading, error, addPin, removePin };
 }

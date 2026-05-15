@@ -16,20 +16,17 @@
 
 # Frontend
 
-- [ ] Integrate location pins into map.
-
 -  [ ] Create image carousel component for location pins.
 
 - [ ] Create button to upload images to location pins.
 
-- [ ] Create button to add new location pin.
+- [ ] Fix empty try/catch blocks in frontend code.
 
-- [ ] Change the light theme to be a little less yellow (bone/cream would be nice).
 
 # Misc
 
 - [ ] Makefile.
 
--[ ] Dockerize the backend and frontend.
+- [ ] Dockerize the backend and frontend.
 
-- Setup DBs.
+- [ ] Move auth handling for admin pannel to backend or out of component.

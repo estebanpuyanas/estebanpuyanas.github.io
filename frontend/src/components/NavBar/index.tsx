@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 
 const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
   { mode: "light", icon: "☀", label: "Light" },
-  { mode: "dark",  icon: "☾", label: "Dark"  },
+  { mode: "dark", icon: "☾", label: "Dark" },
   { mode: "system", icon: "auto", label: "System" },
 ];
 
@@ -64,9 +64,15 @@ export default function NavBar() {
           onClick={() => setMobileOpen((v) => !v)}
           aria-label="Toggle menu"
         >
-          <span className={`hamburger-bar${mobileOpen ? " bar-top-open" : ""}`} />
-          <span className={`hamburger-bar${mobileOpen ? " bar-mid-open" : ""}`} />
-          <span className={`hamburger-bar${mobileOpen ? " bar-bot-open" : ""}`} />
+          <span
+            className={`hamburger-bar${mobileOpen ? " bar-top-open" : ""}`}
+          />
+          <span
+            className={`hamburger-bar${mobileOpen ? " bar-mid-open" : ""}`}
+          />
+          <span
+            className={`hamburger-bar${mobileOpen ? " bar-bot-open" : ""}`}
+          />
         </button>
       </nav>
 

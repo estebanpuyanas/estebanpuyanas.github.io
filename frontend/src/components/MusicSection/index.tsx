@@ -1,10 +1,19 @@
-import { useInView } from '../../hooks/useInView'
-import { useLastFM } from '../../hooks/useLastFM'
-import ScrobbleCarousel from '../ScrobbleCarousel'
+import { useInView } from "../../hooks/useInView";
+import { useLastFM } from "../../hooks/useLastFM";
+import ScrobbleCarousel from "../ScrobbleCarousel";
 
 export default function MusicSection() {
-  const ref = useInView()
-  const { tracks, loading, fetching, error, lastUpdated, loadMore, refresh, canLoadMore } = useLastFM()
+  const ref = useInView();
+  const {
+    tracks,
+    loading,
+    fetching,
+    error,
+    lastUpdated,
+    loadMore,
+    refresh,
+    canLoadMore,
+  } = useLastFM();
 
   return (
     <section id="music" ref={ref as React.RefObject<HTMLElement>}>
@@ -14,7 +23,9 @@ export default function MusicSection() {
         </p>
 
         {loading && (
-          <p className="music-status" data-inview>loading...</p>
+          <p className="music-status" data-inview>
+            loading...
+          </p>
         )}
         {error && (
           <p className="music-status music-status--error" data-inview>
@@ -33,5 +44,5 @@ export default function MusicSection() {
         )}
       </div>
     </section>
-  )
+  );
 }
