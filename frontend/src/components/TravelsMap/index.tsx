@@ -5,6 +5,7 @@ import {
   CircleMarker,
   Tooltip,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import type { Map as LeafletMap } from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -22,6 +23,8 @@ interface Props {
   label?: string;
   markers?: TravelMarker[];
   onMarkerClick?: (marker: TravelMarker) => void;
+  onMapClick?: (lat: number, lng: number) => void;
+  pendingPin?: { lat: number; lng: number } | null;
 }
 
 const CARTO_VOYAGER =
@@ -40,6 +43,19 @@ function MapCapture({
   useEffect(() => {
     mapRef.current = map;
   }, [map, mapRef]);
+  return null;
+}
+
+function MapClickHandler({
+  onMapClick,
+}: {
+  onMapClick?: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      onMapClick?.(e.latlng.lat, e.latlng.lng);
+    },
+  });
   return null;
 }
 
@@ -82,6 +98,8 @@ export default function TravelsMap({
   label,
   markers = [],
   onMarkerClick,
+  onMapClick,
+  pendingPin,
 }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -156,6 +174,7 @@ export default function TravelsMap({
       >
         <MapCapture mapRef={mapRef} />
         <FillWorld trigger={fullscreen} />
+        <MapClickHandler onMapClick={onMapClick} />
 
         <TileLayer
           url={CARTO_VOYAGER}
@@ -177,6 +196,17 @@ export default function TravelsMap({
             </Tooltip>
           </CircleMarker>
         ))}
+        {pendingPin && (
+          <CircleMarker
+            center={[pendingPin.lat, pendingPin.lng]}
+            radius={7}
+            className="tmap-marker-pending"
+          >
+            <Tooltip direction="top" offset={[0, -10]} opacity={0.92} permanent>
+              new pin
+            </Tooltip>
+          </CircleMarker>
+        )}
       </MapContainer>
     </div>
   );

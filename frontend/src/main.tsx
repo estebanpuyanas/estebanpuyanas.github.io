@@ -10,6 +10,7 @@ import MusicPage from "./components/MusicPage";
 import BlogPostPage from "./components/BlogPostPage";
 import AboutPage from "./components/AboutPage";
 import TravelsPage from "./components/TravelsPage";
+import AdminPage from "./components/AdminPage";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/music" element={<MusicPage />} />
         <Route path="/music/:slug" element={<BlogPostPage />} />
         <Route path="/travels" element={<TravelsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

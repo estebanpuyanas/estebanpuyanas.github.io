@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: "projects", path: "/projects" },
   { label: "music", path: "/music" },
   { label: "travels", path: "/travels" },
+  { label: "admin", path: "/admin" },
 ];
 
 const THEME_OPTIONS: { mode: ThemeMode; icon: string; label: string }[] = [
