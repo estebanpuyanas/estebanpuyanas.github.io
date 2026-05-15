@@ -103,14 +103,40 @@
   height: calc(100vh - 49px) !important;
 }
 
-/* ─── Form panel ─────────────────────────────────────────────── */
-.admin-form {
+/* ─── Side panel ─────────────────────────────────────────────── */
+.admin-side {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+.admin-panel-idle {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   padding: 1.5rem 1.25rem;
-  border-left: 1px solid var(--border);
-  overflow-y: auto;
+  flex: 1;
+}
+
+.admin-panel-idle-text {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+
+.admin-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem 1.25rem;
+}
+
+.admin-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .admin-form-label {
@@ -119,6 +145,28 @@
   letter-spacing: 0.12em;
   color: var(--text-3);
   text-transform: uppercase;
+}
+
+/* ─── Pin info (selected mode) ───────────────────────────────── */
+.admin-pin-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  background: var(--bg-3);
+  border-radius: 3px;
+}
+
+.admin-pin-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.admin-pin-country {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-2);
 }
 
 .admin-coords {
@@ -212,6 +260,46 @@
   color: var(--text);
 }
 
+.admin-btn--danger {
+  background: none;
+  border: 1px solid var(--color-error);
+  color: var(--color-error);
+}
+
+.admin-btn--danger:hover:not(:disabled) {
+  background: var(--color-error);
+  color: var(--bg);
+}
+
+.admin-btn--danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Geocoding spinner ──────────────────────────────────────── */
+.admin-input-wrap {
+  position: relative;
+}
+
+.admin-input-wrap .admin-input {
+  width: 100%;
+}
+
+.admin-geocoding-spinner {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  color: var(--text-3);
+  animation: adminSpin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes adminSpin {
+  to { transform: translateY(-50%) rotate(360deg); }
+}
+
 /* ─── Feedback ───────────────────────────────────────────────── */
 .admin-error {
   font-family: var(--font-mono);
@@ -236,7 +324,7 @@
     height: 50vh !important;
   }
 
-  .admin-form {
+  .admin-side {
     border-left: none;
     border-top: 1px solid var(--border);
   }

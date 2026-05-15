@@ -30,6 +30,15 @@ export async function getPins(): Promise<Pin[]> {
   return res.json();
 }
 
+export async function deletePin(id: string, token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/travel/pins/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to delete pin: ${res.status}`);
+}
+
 export async function createPin(
   payload: CreatePinPayload,
   token: string,

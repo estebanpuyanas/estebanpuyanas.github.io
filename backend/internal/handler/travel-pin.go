@@ -49,6 +49,23 @@ func (h *TravelPinHandler) CreatePin(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pin)
 }
 
+func (h *TravelPinHandler) DeletePin(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.DeletePin(r.Context(), id); err != nil {
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to delete pin"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // AdminMiddleware rejects requests that don't carry the correct bearer token.
 func AdminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

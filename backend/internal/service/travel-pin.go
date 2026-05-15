@@ -50,6 +50,18 @@ func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, e
 	return pins, rows.Err()
 }
 
+func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
+	result, err := s.db.ExecContext(ctx, `DELETE FROM travel_pins WHERE id = ?`, id)
+	if err != nil {
+		return fmt.Errorf("delete pin: %w", err)
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("pin not found")
+	}
+	return nil
+}
+
 func (s *TravelPinService) CreatePin(ctx context.Context, req model.CreatePinRequest) (model.TravelPin, error) {
 	id := uuid.New().String()
 	_, err := s.db.ExecContext(ctx, `

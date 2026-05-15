@@ -48,11 +48,17 @@ function MapCapture({
 
 function MapClickHandler({
   onMapClick,
+  suppress,
 }: {
   onMapClick?: (lat: number, lng: number) => void;
+  suppress: React.MutableRefObject<boolean>;
 }) {
   useMapEvents({
     click(e) {
+      if (suppress.current) {
+        suppress.current = false;
+        return;
+      }
       onMapClick?.(e.latlng.lat, e.latlng.lng);
     },
   });
@@ -103,6 +109,7 @@ export default function TravelsMap({
 }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
   const outerRef = useRef<HTMLDivElement>(null);
+  const suppressMapClick = useRef(false);
   const [fullscreen, setFs] = useState(false);
 
   useEffect(() => {
@@ -174,7 +181,7 @@ export default function TravelsMap({
       >
         <MapCapture mapRef={mapRef} />
         <FillWorld trigger={fullscreen} />
-        <MapClickHandler onMapClick={onMapClick} />
+        <MapClickHandler onMapClick={onMapClick} suppress={suppressMapClick} />
 
         <TileLayer
           url={CARTO_VOYAGER}
@@ -189,7 +196,12 @@ export default function TravelsMap({
             center={[m.lat, m.lng]}
             radius={6}
             className="tmap-marker-circle"
-            eventHandlers={{ click: () => onMarkerClick?.(m) }}
+            eventHandlers={{
+              click: () => {
+                suppressMapClick.current = true;
+                onMarkerClick?.(m);
+              },
+            }}
           >
             <Tooltip direction="top" offset={[0, -10]} opacity={0.92}>
               {m.label}
