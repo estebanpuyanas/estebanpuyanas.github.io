@@ -66,6 +66,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   position: relative;
   transition:
     background-color 0.35s ease,
@@ -77,6 +79,9 @@ body {
   padding: 0;
   margin: 0;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* ─── Film grain overlay ─────────────────────────────────────── */
@@ -316,6 +321,7 @@ img {
 /* ─── Page content offset ────────────────────────────────────── */
 .page-content {
   padding-top: var(--nav-height);
+  flex: 1;
 }
 
 /* ─── Hero ───────────────────────────────────────────────────── */
