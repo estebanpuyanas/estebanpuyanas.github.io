@@ -50,8 +50,16 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
-	mux.HandleFunc("GET /api/travel/pins", travelPinHandler.GetAllPins)
-	mux.HandleFunc("POST /api/travel/pins", handler.AdminMiddleware(travelPinHandler.CreatePin))
+	mux.HandleFunc("/api/travel/pins", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			travelPinHandler.GetAllPins(w, r)
+		case http.MethodPost:
+			handler.AdminMiddleware(travelPinHandler.CreatePin)(w, r)
+		default:
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+		}
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
