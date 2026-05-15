@@ -34,7 +34,6 @@ export default function ScrobbleCarousel({
   const [page, setPage] = useState(0);
   const prevTrackCount = useRef(tracks.length);
 
-  // Reset to last page when new tracks load via "load more"
   useEffect(() => {
     if (tracks.length > prevTrackCount.current) {
       const history = tracks.slice(1);
@@ -50,16 +49,11 @@ export default function ScrobbleCarousel({
   const current = tracks[0];
   const history = tracks.slice(1);
   const totalPages = Math.max(1, Math.ceil(history.length / PAGE_SIZE));
-  const pageItems = history.slice(
-    page * PAGE_SIZE,
-    page * PAGE_SIZE + PAGE_SIZE,
-  );
-
+  const pageItems = history.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const isLastPage = page === totalPages - 1;
   const canGoNext = !isLastPage || canLoadMore;
 
   const handlePrev = () => setPage((p) => Math.max(0, p - 1));
-
   const handleNext = () => {
     if (!isLastPage) {
       setPage((p) => p + 1);
@@ -71,6 +65,7 @@ export default function ScrobbleCarousel({
   return (
     <div className="scrobble">
       <div className="scrobble-layout">
+
         {/* ── History (left) ── */}
         <div className="scrobble-history">
           <p className="scrobble-section-label">previously listened to...</p>
@@ -78,11 +73,13 @@ export default function ScrobbleCarousel({
           <div className="scrobble-history-grid">
             {pageItems.map((track, i) => (
               <div key={page * PAGE_SIZE + i} className="scrobble-hist-item">
-                <img
-                  className="scrobble-hist-img"
-                  src={track.imageUrl || FALLBACK_IMG}
-                  alt={track.album}
-                />
+                <div className="scrobble-hist-art">
+                  <img
+                    className="scrobble-hist-img"
+                    src={track.imageUrl || FALLBACK_IMG}
+                    alt={track.album}
+                  />
+                </div>
                 <p className="scrobble-hist-name">{track.name}</p>
                 <p className="scrobble-hist-meta">
                   {track.artist} · {track.album}
@@ -92,37 +89,33 @@ export default function ScrobbleCarousel({
                 )}
               </div>
             ))}
-            {/* Fill empty slots so layout stays stable */}
-            {Array.from({ length: PAGE_SIZE - pageItems.length }).map(
-              (_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className="scrobble-hist-item scrobble-hist-item--empty"
-                />
-              ),
-            )}
+            {Array.from({ length: PAGE_SIZE - pageItems.length }).map((_, i) => (
+              <div key={`empty-${i}`} className="scrobble-hist-item scrobble-hist-item--empty" />
+            ))}
           </div>
 
-          <div className="scrobble-history-nav">
-            <button
-              className="scrobble-nav-btn"
-              onClick={handlePrev}
-              disabled={page === 0}
-              aria-label="previous page"
-            >
-              ‹
-            </button>
-            <span className="scrobble-nav-page">
-              {page + 1} / {totalPages}
-            </span>
-            <button
-              className="scrobble-nav-btn"
-              onClick={handleNext}
-              disabled={!canGoNext || fetching}
-              aria-label={isLastPage ? "load more" : "next page"}
-            >
-              {fetching && isLastPage ? "…" : "›"}
-            </button>
+          <div className="scrobble-controls">
+            <div className="scrobble-nav">
+              <button
+                className="scrobble-nav-btn"
+                onClick={handlePrev}
+                disabled={page === 0}
+                aria-label="previous page"
+              >
+                ‹
+              </button>
+              <span className="scrobble-nav-page">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                className="scrobble-nav-btn"
+                onClick={handleNext}
+                disabled={!canGoNext || fetching}
+                aria-label={isLastPage ? "load more" : "next page"}
+              >
+                {fetching && isLastPage ? "…" : "›"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -150,7 +143,7 @@ export default function ScrobbleCarousel({
             </p>
           </div>
 
-          <div className="scrobble-controls">
+          <div className="scrobble-actions">
             <button
               className="scrobble-btn scrobble-btn--refresh"
               onClick={onRefresh}
@@ -166,6 +159,7 @@ export default function ScrobbleCarousel({
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

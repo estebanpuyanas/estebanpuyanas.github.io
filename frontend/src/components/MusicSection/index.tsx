@@ -8,7 +8,7 @@ export default function MusicSection() {
 
   return (
     <section id="music" ref={ref as React.RefObject<HTMLElement>}>
-      <div className="section-wrapper">
+      <div className="section-wrapper section-wrapper--music">
         <p className="section-label" data-inview>
           // music
         </p>

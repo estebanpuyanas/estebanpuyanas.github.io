@@ -1,8 +1,10 @@
 /* ─── Outer wrapper ──────────────────────────────────────────── */
 .scrobble {
-  padding: 2rem 0 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ─── Split layout: history | divider | current ──────────────── */
 .scrobble-layout {
   display: grid;
   grid-template-columns: 1fr 1px auto;
@@ -26,7 +28,7 @@
   align-self: stretch;
 }
 
-/* ─── History section (left) ─────────────────────────────────── */
+/* ─── History (left) ─────────────────────────────────────────── */
 .scrobble-history {
   display: flex;
   flex-direction: column;
@@ -36,14 +38,15 @@
 .scrobble-history-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 1.25rem;
+  align-items: start;
 }
 
-/* ─── History items ──────────────────────────────────────────── */
+/* ─── History cards ──────────────────────────────────────────── */
 .scrobble-hist-item {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
   min-width: 0;
 }
 
@@ -51,18 +54,24 @@
   visibility: hidden;
 }
 
-.scrobble-hist-img {
+.scrobble-hist-art {
   width: 100%;
   aspect-ratio: 1;
+  margin-bottom: 0.2rem;
+}
+
+.scrobble-hist-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--bg-3);
 }
 
 .scrobble-hist-name {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 400;
   color: var(--text);
   white-space: nowrap;
@@ -72,7 +81,7 @@
 
 .scrobble-hist-meta {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
@@ -86,11 +95,14 @@
 }
 
 /* ─── Page nav ───────────────────────────────────────────────── */
-.scrobble-history-nav {
+.scrobble-controls {
+  margin-top: 1rem;
+}
+
+.scrobble-nav {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin-top: 1rem;
 }
 
 .scrobble-nav-btn {
@@ -132,13 +144,13 @@
 .scrobble-current {
   display: flex;
   flex-direction: column;
-  width: 220px;
+  width: 260px;
 }
 
 .scrobble-current-art-wrap {
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: 260px;
+  height: 260px;
   margin-bottom: 1rem;
 }
 
@@ -146,7 +158,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 3px;
+  border-radius: 4px;
   display: block;
   background: var(--bg-3);
 }
@@ -155,9 +167,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  margin-bottom: 1.25rem;
 }
 
-/* ─── Live / REC badge ───────────────────────────────────────── */
+/* ─── Live badge ─────────────────────────────────────────────── */
 .scrobble-rec {
   position: absolute;
   top: 10px;
@@ -200,7 +213,7 @@
   }
 }
 
-/* ─── Shared text ────────────────────────────────────────────── */
+/* ─── Shared text (current track) ────────────────────────────── */
 .scrobble-name {
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -215,13 +228,11 @@
   color: var(--text-2);
 }
 
-/* ─── Controls row ───────────────────────────────────────────── */
-.scrobble-controls {
+/* ─── Fetch button + timestamp ───────────────────────────────── */
+.scrobble-actions {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .scrobble-btn {
@@ -262,7 +273,6 @@
   border-color: var(--accent-light);
 }
 
-/* ─── Last updated timestamp ─────────────────────────────────── */
 .scrobble-updated {
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -270,7 +280,7 @@
   letter-spacing: 0.03em;
 }
 
-/* ─── Spin animation for refresh icon ───────────────────────── */
+/* ─── Spin animation ─────────────────────────────────────────── */
 .scrobble-spin {
   display: inline-block;
   animation: scrobbleSpin 0.8s linear infinite;
@@ -312,8 +322,8 @@
   }
 
   .scrobble-current-art-wrap {
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
   }
 
   .scrobble-history-grid {

@@ -178,6 +178,10 @@ img {
   margin: 0 auto;
 }
 
+.section-wrapper--music {
+  padding-top: clamp(1.5rem, 3vh, 2.5rem);
+}
+
 /* ─── Divider ────────────────────────────────────────────────── */
 .divider {
   height: 1px;
