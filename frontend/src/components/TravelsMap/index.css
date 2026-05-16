@@ -71,7 +71,9 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .tmap-btn:hover {
@@ -124,13 +126,15 @@
 .tmap-pin-svg {
   overflow: visible;
   display: block;
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
-  transition: transform 0.12s ease, filter 0.12s ease;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease;
 }
 
 .tmap-pin-svg:hover {
   transform: scale(1.15) translateY(-2px);
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
 }
 
 .tmap-pin-svg .tmap-pin-body {
@@ -157,6 +161,11 @@
 }
 
 @keyframes pendingPulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
