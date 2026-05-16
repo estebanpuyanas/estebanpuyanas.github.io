@@ -41,6 +41,8 @@ function getStoredToken(): string {
   try {
     return localStorage.getItem(TOKEN_KEY) ?? "";
   } catch {
+    // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage read failed");
     return "";
   }
 }
@@ -48,13 +50,19 @@ function getStoredToken(): string {
 function storeToken(t: string) {
   try {
     localStorage.setItem(TOKEN_KEY, t);
-  } catch {}
+  } catch {
+    // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage write failed");
+  }
 }
 
 function clearToken() {
   try {
     localStorage.removeItem(TOKEN_KEY);
-  } catch {}
+  } catch {
+    // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage delete failed");
+  }
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -77,6 +85,8 @@ async function reverseGeocode(lat: number, lng: number) {
       country: addr.country ?? "",
     };
   } catch {
+    // eslint-disable-next-line no-console
+    if (import.meta.env.DEV) console.warn("[AdminPage] reverse geocode failed");
     return null;
   }
 }

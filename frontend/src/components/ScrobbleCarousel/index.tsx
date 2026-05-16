@@ -49,7 +49,10 @@ export default function ScrobbleCarousel({
   const current = tracks[0];
   const history = tracks.slice(1);
   const totalPages = Math.max(1, Math.ceil(history.length / PAGE_SIZE));
-  const pageItems = history.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  const pageItems = history.slice(
+    page * PAGE_SIZE,
+    page * PAGE_SIZE + PAGE_SIZE,
+  );
   const isLastPage = page === totalPages - 1;
   const canGoNext = !isLastPage || canLoadMore;
 
@@ -65,7 +68,6 @@ export default function ScrobbleCarousel({
   return (
     <div className="scrobble">
       <div className="scrobble-layout">
-
         {/* ── History (left) ── */}
         <div className="scrobble-history">
           <p className="scrobble-section-label">previously listened to...</p>
@@ -89,9 +91,14 @@ export default function ScrobbleCarousel({
                 )}
               </div>
             ))}
-            {Array.from({ length: PAGE_SIZE - pageItems.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="scrobble-hist-item scrobble-hist-item--empty" />
-            ))}
+            {Array.from({ length: PAGE_SIZE - pageItems.length }).map(
+              (_, i) => (
+                <div
+                  key={`empty-${i}`}
+                  className="scrobble-hist-item scrobble-hist-item--empty"
+                />
+              ),
+            )}
           </div>
 
           <div className="scrobble-controls">
@@ -159,7 +166,6 @@ export default function ScrobbleCarousel({
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
