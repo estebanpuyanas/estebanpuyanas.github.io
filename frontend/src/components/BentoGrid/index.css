@@ -5,7 +5,7 @@
   grid-template-rows: 1fr 1fr 240px;
   gap: 8px;
   width: 100%;
-  height: calc(100vh - var(--nav-height) - 1.5rem);
+  height: calc(100vh - var(--nav-height) - 2rem);
   min-height: 520px;
 }
 
@@ -96,7 +96,7 @@
 /* ─── Music tile ─────────────────────────────────────────────── */
 .bento-music-content {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
   padding: 0.7rem 0.9rem;
   flex: 1;
@@ -168,6 +168,95 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: 0.02em;
+}
+
+/* ─── EQ bars ─────────────────────────────────────────────────── */
+.bento-eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  margin-top: 0.45rem;
+}
+
+.bento-eq-bar {
+  width: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  transform-origin: bottom;
+}
+
+.bento-eq-bar:nth-child(1) { height: 6px;  animation: bentoEqBar 0.7s 0s    ease-in-out infinite alternate; }
+.bento-eq-bar:nth-child(2) { height: 12px; animation: bentoEqBar 0.7s 0.10s ease-in-out infinite alternate; }
+.bento-eq-bar:nth-child(3) { height: 8px;  animation: bentoEqBar 0.7s 0.22s ease-in-out infinite alternate; }
+.bento-eq-bar:nth-child(4) { height: 14px; animation: bentoEqBar 0.7s 0.05s ease-in-out infinite alternate; }
+.bento-eq-bar:nth-child(5) { height: 10px; animation: bentoEqBar 0.7s 0.17s ease-in-out infinite alternate; }
+
+@keyframes bentoEqBar {
+  from { transform: scaleY(0.2); }
+  to   { transform: scaleY(1); }
+}
+
+.bento-eq-bars--paused .bento-eq-bar {
+  animation: none;
+  transform: scaleY(0.35);
+  opacity: 0.35;
+}
+
+/* ─── Recommendation form ─────────────────────────────────────── */
+.bento-rec-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.9rem 0.55rem;
+  flex-shrink: 0;
+}
+
+.bento-rec-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  min-width: 0;
+  transition: border-color 0.15s;
+}
+
+.bento-rec-input::placeholder {
+  color: var(--text-3);
+}
+
+.bento-rec-input:focus {
+  border-color: var(--border-light);
+}
+
+.bento-rec-submit {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 0.28rem 0.45rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.bento-rec-submit:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bento-rec-thanks {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
 }
 
 /* ─── Travel tile ────────────────────────────────────────────── */

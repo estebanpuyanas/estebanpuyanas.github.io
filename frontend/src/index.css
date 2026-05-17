@@ -357,7 +357,7 @@ img {
 
 .hero-wrapper--bento {
   align-items: stretch;
-  padding: 0.75rem var(--gutter);
+  padding: 1.25rem var(--gutter) 0.75rem;
 }
 
 /* ─── About ──────────────────────────────────────────────────── */

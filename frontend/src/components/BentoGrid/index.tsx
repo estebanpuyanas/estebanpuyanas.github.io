@@ -7,7 +7,7 @@ import "./index.css";
 export default function BentoGrid() {
   return (
     <div className="bento">
-      <div className="bento-tile bento-terminal">
+      <div className="bento-tile bento-tile--clickable bento-terminal">
         <Terminal />
       </div>
       <MusicTile />
