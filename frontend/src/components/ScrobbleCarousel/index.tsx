@@ -11,16 +11,13 @@ interface Props {
   fetching: boolean;
   lastUpdated: Date | null;
   onLoadMore: () => void;
-  onRefresh: () => void;
   canLoadMore: boolean;
 }
 
 function formatTime(d: Date): string {
-  return d.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  const date = d.toLocaleDateString([], { month: "long", day: "numeric" });
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${date} at ${time}`;
 }
 
 export default function ScrobbleCarousel({
@@ -28,7 +25,6 @@ export default function ScrobbleCarousel({
   fetching,
   lastUpdated,
   onLoadMore,
-  onRefresh,
   canLoadMore,
 }: Props) {
   const [page, setPage] = useState(0);
@@ -150,21 +146,12 @@ export default function ScrobbleCarousel({
             </p>
           </div>
 
-          <div className="scrobble-actions">
-            <button
-              className="scrobble-btn scrobble-btn--refresh"
-              onClick={onRefresh}
-              disabled={fetching}
-            >
-              <span className={fetching ? "scrobble-spin" : ""}>↺</span>
-              {fetching ? "fetching..." : "fetch scrobbles"}
-            </button>
-            {lastUpdated && !fetching && (
-              <span className="scrobble-updated">
-                updated {formatTime(lastUpdated)}
-              </span>
-            )}
-          </div>
+          {lastUpdated && (
+            <p className="scrobble-hint">
+              last updated at {formatTime(lastUpdated)}, tell Esteban to scan
+              for new scrobbles!
+            </p>
+          )}
         </div>
       </div>
     </div>

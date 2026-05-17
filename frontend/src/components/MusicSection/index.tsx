@@ -11,7 +11,6 @@ export default function MusicSection() {
     error,
     lastUpdated,
     loadMore,
-    refresh,
     canLoadMore,
   } = useLastFM();
 
@@ -38,7 +37,6 @@ export default function MusicSection() {
             fetching={fetching}
             lastUpdated={lastUpdated}
             onLoadMore={loadMore}
-            onRefresh={refresh}
             canLoadMore={canLoadMore}
           />
         )}
