@@ -126,7 +126,7 @@
 .tmap-pin-svg {
   overflow: visible;
   display: block;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 2px 3px var(--shadow-sm));
   transition:
     transform 0.12s ease,
     filter 0.12s ease;
@@ -134,12 +134,12 @@
 
 .tmap-pin-svg:hover {
   transform: scale(1.15) translateY(-2px);
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 4px 6px var(--shadow-md));
 }
 
 .tmap-pin-svg .tmap-pin-body {
   fill: var(--accent);
-  stroke: color-mix(in srgb, var(--accent) 60%, black);
+  stroke: color-mix(in srgb, var(--accent) 60%, var(--color-darken));
   stroke-width: 1px;
   transition: fill 0.15s;
 }
@@ -151,7 +151,7 @@
 /* Pending pin (red, pulsing) */
 .tmap-pin-svg--pending .tmap-pin-body {
   fill: var(--color-error);
-  stroke: color-mix(in srgb, var(--color-error) 60%, black);
+  stroke: color-mix(in srgb, var(--color-error) 60%, var(--color-darken));
   animation: pendingPulse 1s ease-in-out infinite;
 }
 

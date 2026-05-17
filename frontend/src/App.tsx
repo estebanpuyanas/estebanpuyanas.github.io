@@ -6,7 +6,9 @@ export default function App() {
   return (
     <>
       <NavBar />
-      <HeroSection />
+      <main className="page-content">
+        <HeroSection />
+      </main>
     </>
   );
 }

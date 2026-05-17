@@ -25,6 +25,16 @@ function useBentoMusic() {
 export default function MusicTile() {
   const navigate = useNavigate();
   const { track, loading } = useBentoMusic();
+  const [rec, setRec] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  function handleRec(e: React.FormEvent) {
+    e.preventDefault();
+    if (!rec.trim()) return;
+    setRec("");
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 3000);
+  }
 
   return (
     <div
@@ -59,9 +69,36 @@ export default function MusicTile() {
             <p className="bento-music-meta">
               {track.artist} · {track.album}
             </p>
+            <div className={`bento-eq-bars${track.nowPlaying ? "" : " bento-eq-bars--paused"}`}>
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+            </div>
           </div>
         </div>
       )}
+
+      <form
+        className="bento-rec-form"
+        onSubmit={handleRec}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {submitted ? (
+          <span className="bento-rec-thanks">thanks for the rec!</span>
+        ) : (
+          <>
+            <input
+              className="bento-rec-input"
+              placeholder="recommend a track..."
+              value={rec}
+              onChange={(e) => setRec(e.target.value)}
+            />
+            <button className="bento-rec-submit" type="submit">→</button>
+          </>
+        )}
+      </form>
 
       <span className="bento-cta">// music →</span>
     </div>

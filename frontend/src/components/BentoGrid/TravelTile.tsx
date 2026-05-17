@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { useTravelPins } from "../../hooks/useTravelPins";
 
 const CARTO_VOYAGER =
-  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
 
 const MINI_PIN_SVG = `<svg viewBox="0 0 24 32" width="12" height="16" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path fill="var(--accent)" stroke="rgba(0,0,0,0.35)" stroke-width="1.5" d="M12 1C6.477 1 2 5.477 2 11c0 3.6 1.863 6.77 4.688 8.627L12 31l5.312-11.373C20.137 17.77 22 14.6 22 11c0-5.523-4.477-10-10-10z"/><circle fill="var(--bg-2)" cx="12" cy="11" r="3.5"/></svg>`;
 
