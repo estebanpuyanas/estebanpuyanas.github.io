@@ -8,7 +8,6 @@ export interface LastFMState {
   error: boolean;
   lastUpdated: Date | null;
   loadMore: () => void;
-  refresh: () => void;
   canLoadMore: boolean;
 }
 
@@ -23,7 +22,6 @@ export function useLastFM(): LastFMState {
   const [error, setError] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [limit, setLimit] = useState(STEP);
-  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,16 +50,11 @@ export function useLastFM(): LastFMState {
       cancelled = true;
       clearInterval(id);
     };
-  }, [limit, tick]);
+  }, [limit]);
 
   const loadMore = () => {
     setFetching(true);
     setLimit((l) => Math.min(l + STEP, MAX_LIMIT));
-  };
-
-  const refresh = () => {
-    setFetching(true);
-    setTick((t) => t + 1);
   };
 
   return {
@@ -71,7 +64,6 @@ export function useLastFM(): LastFMState {
     error,
     lastUpdated,
     loadMore,
-    refresh,
     canLoadMore: limit < MAX_LIMIT,
   };
 }

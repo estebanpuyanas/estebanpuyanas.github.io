@@ -16,17 +16,6 @@
 
 # Frontend
 
--  [ ] Create image carousel component for location pins.
-
 - [ ] Create button to upload images to location pins.
 
-- [ ] Fix empty try/catch blocks in frontend code.
-
-
 # Misc
-
-- [ ] Makefile.
-
-- [ ] Dockerize the backend and frontend.
-
-- [ ] Move auth handling for admin pannel to backend or out of component.

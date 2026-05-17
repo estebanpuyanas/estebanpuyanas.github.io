@@ -228,68 +228,13 @@
   color: var(--text-2);
 }
 
-/* ─── Fetch button + timestamp ───────────────────────────────── */
-.scrobble-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.scrobble-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: none;
-  border: 1px solid var(--border-light);
-  color: var(--text-3);
+/* ─── Last updated hint ──────────────────────────────────────── */
+.scrobble-hint {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-  border-radius: 3px;
-  letter-spacing: 0.04em;
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.scrobble-btn:hover:not(:disabled) {
-  color: var(--text);
-  border-color: var(--accent);
-}
-
-.scrobble-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.scrobble-btn--refresh {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.scrobble-btn--refresh:hover:not(:disabled) {
-  color: var(--accent-light);
-  border-color: var(--accent-light);
-}
-
-.scrobble-updated {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--text-3);
+  color: var(--text-2);
   letter-spacing: 0.03em;
-}
-
-/* ─── Spin animation ─────────────────────────────────────────── */
-.scrobble-spin {
-  display: inline-block;
-  animation: scrobbleSpin 0.8s linear infinite;
-}
-
-@keyframes scrobbleSpin {
-  to {
-    transform: rotate(360deg);
-  }
+  line-height: 1.6;
 }
 
 /* ─── Empty state ────────────────────────────────────────────── */
