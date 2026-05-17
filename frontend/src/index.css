@@ -17,6 +17,10 @@
   --overlay-bg: rgba(22, 22, 29, 0.65);
   --color-error: #c34043;
 
+  --chess-heat-1: rgba(192, 163, 110, 0.22);
+  --chess-heat-2: rgba(192, 163, 110, 0.5);
+  --chess-heat-3: rgba(192, 163, 110, 0.78);
+
   --font-display: "Cormorant Garamond", "Times New Roman", serif;
   --font-mono: "DM Mono", "Courier New", monospace;
   --font-body: "Lora", Georgia, serif;
@@ -42,6 +46,10 @@
   --nav-bg: rgba(244, 240, 232, 0.88);
   --overlay-bg: rgba(236, 231, 219, 0.65);
   --color-error: #c34043;
+
+  --chess-heat-1: rgba(204, 109, 0, 0.18);
+  --chess-heat-2: rgba(204, 109, 0, 0.45);
+  --chess-heat-3: rgba(204, 109, 0, 0.72);
 }
 
 /* ─── Reset ─────────────────────────────────────────────────── */
@@ -341,6 +349,11 @@ img {
   align-items: center;
   justify-content: center;
   padding: 2rem var(--gutter);
+}
+
+.hero-wrapper--bento {
+  align-items: stretch;
+  padding: 0.75rem var(--gutter);
 }
 
 /* ─── About ──────────────────────────────────────────────────── */
