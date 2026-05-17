@@ -2,11 +2,10 @@
 .bento {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 420px;
-  grid-template-rows: 1fr 1fr auto;
+  grid-template-rows: 1fr 1fr 240px;
   gap: 8px;
   width: 100%;
   height: calc(100vh - var(--nav-height) - 1.5rem);
-  max-height: 840px;
   min-height: 520px;
 }
 
@@ -454,30 +453,15 @@
   letter-spacing: 0.02em;
 }
 
-/* live game card */
-.bento-game-card--live {
-  background: color-mix(in srgb, var(--color-error) 5%, transparent);
-}
-
-.bento-game-card--live:hover {
-  background: color-mix(in srgb, var(--color-error) 10%, transparent);
-}
-
-.bento-game-live-pip {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-error);
-  flex-shrink: 0;
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-.bento-game-live-label {
+/* "most recently played" tag on first game card */
+.bento-game-recency {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.14em;
+  font-size: 0.46rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-error);
+  color: var(--accent);
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
 /* ─── Ratings row (bottom, full-width) ───────────────────────── */
@@ -547,18 +531,30 @@
 @media (max-width: 900px) {
   .bento {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: 360px auto 260px auto;
     height: auto;
-    max-height: none;
   }
 
-  .bento-terminal { grid-column: 1; grid-row: 1; height: 360px; }
-  .bento-music    { grid-column: 1; grid-row: 2; }
-  .bento-travel   { grid-column: 1; grid-row: 3; height: 260px; }
-  .bento-chess    { grid-column: 1; grid-row: 4; }
+  .bento-terminal { grid-column: 1; grid-row: 1; }
+  .bento-music    { grid-column: 1; grid-row: 2; min-height: 180px; }
+  .bento-travel   { grid-column: 1; grid-row: 3; }
+  .bento-chess    { grid-column: 1; grid-row: 4; min-height: 280px; }
 
   .bento-terminal .terminal-output-area {
     max-height: 260px;
+  }
+
+  .bento-chess-body {
+    flex-direction: column;
+  }
+
+  .bento-chess-heatmap-section {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bento-games-row {
+    overflow-x: auto;
   }
 }
 

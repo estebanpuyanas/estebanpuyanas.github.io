@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { useChess, type HeatmapCell } from "../../hooks/useChess";
-import type { LichessGame, LichessCurrentGame } from "../../services/lichessService";
+import type { LichessGame } from "../../services/lichessService";
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -117,9 +117,17 @@ function opponent(game: LichessGame, username: string): string {
   return opp.user?.name ?? "Anon";
 }
 
-/* ── Game card (vertical, one per completed game) ───────────── */
+/* ── Game card ──────────────────────────────────────────────── */
 
-function GameCard({ game, username }: { game: LichessGame; username: string }) {
+function GameCard({
+  game,
+  username,
+  isMostRecent,
+}: {
+  game: LichessGame;
+  username: string;
+  isMostRecent: boolean;
+}) {
   const result = gameResult(game, username);
   const opp = opponent(game, username);
   const opening = game.opening?.name ?? "—";
@@ -131,6 +139,9 @@ function GameCard({ game, username }: { game: LichessGame; username: string }) {
       rel="noopener noreferrer"
       className="bento-game-card"
     >
+      {isMostRecent && (
+        <span className="bento-game-recency">most recently played</span>
+      )}
       <span className={`bento-game-result bento-game-result--${result}`}>
         {result === "win" ? "W" : result === "loss" ? "L" : "D"}
       </span>
@@ -141,56 +152,24 @@ function GameCard({ game, username }: { game: LichessGame; username: string }) {
   );
 }
 
-function LiveGameCard({
-  game,
-  username,
-}: {
-  game: LichessCurrentGame;
-  username: string;
-}) {
-  const opp = opponent(game, username);
-
-  return (
-    <a
-      href={`https://lichess.org/${game.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="bento-game-card bento-game-card--live"
-    >
-      <span className="bento-game-live-pip" />
-      <span className="bento-game-live-label">live</span>
-      <span className="bento-game-speed">{game.speed}</span>
-      <span className="bento-game-opp">vs {opp}</span>
-    </a>
-  );
-}
-
 const VITE_USERNAME = import.meta.env.VITE_LICHESS_USERNAME as string;
 
 export default function ChessTile() {
-  const { user, heatmap, recentGames, currentGame, loading, error } = useChess();
+  const { user, heatmap, recentGames, loading, error } = useChess();
   const labels = heatmap.length ? getMonthLabels(heatmap) : [];
-
-  // Live game replaces the most recent completed game slot
-  const displayGames: Array<LichessGame | (LichessCurrentGame & { _live: true })> =
-    currentGame
-      ? [{ ...currentGame, _live: true as const }, ...recentGames.slice(1)]
-      : recentGames;
 
   return (
     <div className="bento-tile bento-chess">
 
-      {/* ── Top body: heatmap + game cards side-by-side ── */}
+      {/* ── Top body: heatmap + game cards ── */}
       <div className="bento-chess-body">
 
-        {/* Left: heatmap section */}
+        {/* Left: heatmap */}
         <div className="bento-chess-heatmap-section">
           <div className="bento-chess-heatmap-header">
             <span className="bento-label" style={{ padding: 0 }}>// chess</span>
             {!loading && !error && user && (
-              <span className="bento-chess-total">
-                {user.count.all.toLocaleString()}g
-              </span>
+              <span className="bento-chess-total">{user.count.all.toLocaleString()}g</span>
             )}
           </div>
 
@@ -257,13 +236,14 @@ export default function ChessTile() {
               ? Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="bento-game-card bento-game-card--skeleton" />
                 ))
-              : displayGames.map((g, i) =>
-                  "_live" in g ? (
-                    <LiveGameCard key="live" game={g} username={VITE_USERNAME} />
-                  ) : (
-                    <GameCard key={g.id ?? i} game={g} username={VITE_USERNAME} />
-                  ),
-                )}
+              : recentGames.map((g, i) => (
+                  <GameCard
+                    key={g.id ?? i}
+                    game={g}
+                    username={VITE_USERNAME}
+                    isMostRecent={i === 0}
+                  />
+                ))}
           </div>
         </div>
       </div>

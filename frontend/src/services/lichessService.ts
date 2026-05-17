@@ -53,10 +53,6 @@ export interface LichessGame {
   };
 }
 
-export interface LichessCurrentGame extends LichessGame {
-  isMyTurn?: boolean;
-}
-
 export async function getLichessRecentGames(max = 5): Promise<LichessGame[]> {
   const res = await fetch(
     `${LICHESS_BASE}/games/user/${USERNAME}?max=${max}&opening=true`,
@@ -68,17 +64,6 @@ export async function getLichessRecentGames(max = 5): Promise<LichessGame[]> {
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line) as LichessGame);
-}
-
-export async function getLichessCurrentGame(): Promise<LichessCurrentGame | null> {
-  const res = await fetch(`${LICHESS_BASE}/user/${USERNAME}/current-game`, {
-    headers: { Accept: "application/json" },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Lichess current game fetch failed: ${res.status}`);
-  const text = await res.text();
-  if (!text.trim()) return null;
-  return JSON.parse(text) as LichessCurrentGame;
 }
 
 export async function getLichessActivity(): Promise<LichessActivityDay[]> {

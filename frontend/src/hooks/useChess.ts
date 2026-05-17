@@ -3,11 +3,9 @@ import {
   getLichessUser,
   getLichessActivity,
   getLichessRecentGames,
-  getLichessCurrentGame,
   type LichessUser,
   type LichessActivityDay,
   type LichessGame,
-  type LichessCurrentGame,
 } from "../services/lichessService";
 
 export interface HeatmapCell {
@@ -20,7 +18,6 @@ export interface ChessState {
   user: LichessUser | null;
   heatmap: HeatmapCell[][];
   recentGames: LichessGame[];
-  currentGame: LichessCurrentGame | null;
   loading: boolean;
   error: boolean;
 }
@@ -31,7 +28,6 @@ function buildHeatmap(activity: LichessActivityDay[]): HeatmapCell[][] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Start from the Sunday 52 weeks ago
   const start = new Date(today);
   start.setDate(today.getDate() - 52 * 7);
   start.setDate(start.getDate() - start.getDay());
@@ -60,7 +56,6 @@ export function useChess(): ChessState {
   const [user, setUser] = useState<LichessUser | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapCell[][]>([]);
   const [recentGames, setRecentGames] = useState<LichessGame[]>([]);
-  const [currentGame, setCurrentGame] = useState<LichessCurrentGame | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -69,17 +64,15 @@ export function useChess(): ChessState {
       getLichessUser(),
       getLichessActivity(),
       getLichessRecentGames(5),
-      getLichessCurrentGame(),
     ])
-      .then(([userData, activity, games, live]) => {
+      .then(([userData, activity, games]) => {
         setUser(userData);
         setHeatmap(buildHeatmap(activity));
         setRecentGames(games);
-        setCurrentGame(live);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
-  return { user, heatmap, recentGames, currentGame, loading, error };
+  return { user, heatmap, recentGames, loading, error };
 }
