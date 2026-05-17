@@ -61,6 +61,8 @@ func main() {
 		}
 	})
 
+	mux.HandleFunc("GET /api/travel/pins/{id}/images", travelPinHandler.GetPinImages)
+
 	mux.HandleFunc("/api/travel/pins/{id}", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodDelete:

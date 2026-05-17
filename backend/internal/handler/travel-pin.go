@@ -49,6 +49,25 @@ func (h *TravelPinHandler) CreatePin(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pin)
 }
 
+func (h *TravelPinHandler) GetPinImages(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	images, err := h.svc.GetPinImages(r.Context(), id)
+	if err != nil {
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to fetch images"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(images)
+}
+
 func (h *TravelPinHandler) DeletePin(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {

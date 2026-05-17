@@ -22,7 +22,7 @@ func NewTravelPinService(db *sql.DB, cld *cloudinary.CloudinaryService) *TravelP
 
 func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, location_name, country, latitude, longitude, cloudinary_folder
+		SELECT id, location_name, country, latitude, longitude
 		FROM travel_pins
 		ORDER BY created_at DESC`)
 	if err != nil {
@@ -33,21 +33,28 @@ func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, e
 	pins := []model.TravelPin{}
 	for rows.Next() {
 		var p model.TravelPin
-		var folder string
-		if err := rows.Scan(&p.ID, &p.LocationName, &p.Country, &p.Latitude, &p.Longitude, &folder); err != nil {
+		if err := rows.Scan(&p.ID, &p.LocationName, &p.Country, &p.Latitude, &p.Longitude); err != nil {
 			return nil, fmt.Errorf("scan pin: %w", err)
 		}
-		if s.cloudinary != nil && folder != "" {
-			if images, err := s.cloudinary.GetImagesByFolder(ctx, folder); err == nil {
-				p.Images = images
-			}
-		}
-		if p.Images == nil {
-			p.Images = []model.Image{}
-		}
+		p.Images = []model.Image{}
 		pins = append(pins, p)
 	}
 	return pins, rows.Err()
+}
+
+func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model.Image, error) {
+	var folder string
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, id).Scan(&folder)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("pin not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("query pin: %w", err)
+	}
+	if s.cloudinary == nil || folder == "" {
+		return []model.Image{}, nil
+	}
+	return s.cloudinary.GetImagesByFolder(ctx, folder)
 }
 
 func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {

@@ -39,6 +39,12 @@ export async function deletePin(id: string, token: string): Promise<void> {
   if (!res.ok) throw new Error(`Failed to delete pin: ${res.status}`);
 }
 
+export async function getPinImages(id: string): Promise<PinImage[]> {
+  const res = await fetch(`${BASE_URL}/api/travel/pins/${id}/images`);
+  if (!res.ok) throw new Error(`Failed to fetch images: ${res.status}`);
+  return res.json();
+}
+
 export async function createPin(
   payload: CreatePinPayload,
   token: string,
