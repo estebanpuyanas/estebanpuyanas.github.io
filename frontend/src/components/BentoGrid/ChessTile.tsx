@@ -176,7 +176,7 @@ export default function ChessTile() {
           <div className="bento-heatmap-scroll">
             <div className="bento-heatmap-layout">
               <div className="bento-heatmap-days">
-                {["M", "", "W", "", "F", "", ""].map((d, i) => (
+                {["M", "", "W", "", "F", "", "S"].map((d, i) => (
                   <span key={i} className="bento-heatmap-day">{d}</span>
                 ))}
               </div>
