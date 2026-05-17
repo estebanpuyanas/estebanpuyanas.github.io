@@ -15,6 +15,10 @@
   --border-light: #363646;
   --nav-bg: rgba(31, 31, 40, 0.85);
   --overlay-bg: rgba(22, 22, 29, 0.65);
+  --modal-backdrop: rgba(0, 0, 0, 0.72);
+  --shadow-sm: rgba(0, 0, 0, 0.35);
+  --shadow-md: rgba(0, 0, 0, 0.45);
+  --color-darken: #000000;
   --color-error: #c34043;
 
   --chess-heat-1: rgba(192, 163, 110, 0.22);
