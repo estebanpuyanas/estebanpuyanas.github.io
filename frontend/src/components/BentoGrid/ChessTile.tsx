@@ -103,37 +103,33 @@ const PERF_DISPLAY: {
   { key: "puzzle",    label: "Puzzle",    Icon: PuzzleIcon },
 ];
 
-/* ── Game result helpers ────────────────────────────────────── */
+/* ── Game helpers ───────────────────────────────────────────── */
 
-function gameResult(
-  game: LichessGame,
-  username: string,
-): "win" | "loss" | "draw" {
+function gameResult(game: LichessGame, username: string): "win" | "loss" | "draw" {
   if (!game.winner) return "draw";
-  const myColor =
-    game.players.white.user?.id === username ? "white" : "black";
+  const myColor = game.players.white.user?.id === username ? "white" : "black";
   return game.winner === myColor ? "win" : "loss";
 }
 
 function opponent(game: LichessGame, username: string): string {
   const isWhite = game.players.white.user?.id === username;
   const opp = isWhite ? game.players.black : game.players.white;
-  return opp.user?.name ?? "Anonymous";
+  return opp.user?.name ?? "Anon";
 }
 
-/* ── Recent game row ────────────────────────────────────────── */
+/* ── Game card (vertical, one per completed game) ───────────── */
 
-function GameRow({ game, username }: { game: LichessGame; username: string }) {
+function GameCard({ game, username }: { game: LichessGame; username: string }) {
   const result = gameResult(game, username);
   const opp = opponent(game, username);
-  const opening = game.opening?.name ?? game.speed;
+  const opening = game.opening?.name ?? "—";
 
   return (
     <a
       href={`https://lichess.org/${game.id}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="bento-game-row"
+      className="bento-game-card"
     >
       <span className={`bento-game-result bento-game-result--${result}`}>
         {result === "win" ? "W" : result === "loss" ? "L" : "D"}
@@ -145,7 +141,7 @@ function GameRow({ game, username }: { game: LichessGame; username: string }) {
   );
 }
 
-function LiveGameRow({
+function LiveGameCard({
   game,
   username,
 }: {
@@ -159,9 +155,9 @@ function LiveGameRow({
       href={`https://lichess.org/${game.id}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="bento-game-row bento-game-row--live"
+      className="bento-game-card bento-game-card--live"
     >
-      <span className="bento-game-live-dot" />
+      <span className="bento-game-live-pip" />
       <span className="bento-game-live-label">live</span>
       <span className="bento-game-speed">{game.speed}</span>
       <span className="bento-game-opp">vs {opp}</span>
@@ -175,7 +171,7 @@ export default function ChessTile() {
   const { user, heatmap, recentGames, currentGame, loading, error } = useChess();
   const labels = heatmap.length ? getMonthLabels(heatmap) : [];
 
-  // If live game exists, replace the most recent completed game with it
+  // Live game replaces the most recent completed game slot
   const displayGames: Array<LichessGame | (LichessCurrentGame & { _live: true })> =
     currentGame
       ? [{ ...currentGame, _live: true as const }, ...recentGames.slice(1)]
@@ -183,87 +179,96 @@ export default function ChessTile() {
 
   return (
     <div className="bento-tile bento-chess">
-      <div className="bento-chess-header">
-        <span className="bento-label">// chess · goldenorion9</span>
-        {!loading && !error && user && (
-          <span className="bento-chess-total">
-            {user.count.all.toLocaleString()} total games
-          </span>
-        )}
-      </div>
 
+      {/* ── Top body: heatmap + game cards side-by-side ── */}
       <div className="bento-chess-body">
-        {/* Heatmap */}
-        <div className="bento-heatmap-scroll">
-          <div className="bento-heatmap-layout">
-            <div className="bento-heatmap-days">
-              {["M", "", "W", "", "F", "", ""].map((d, i) => (
-                <span key={i} className="bento-heatmap-day">{d}</span>
-              ))}
-            </div>
 
-            <div className="bento-heatmap-weeks-col">
-              <div className="bento-heatmap-months">
-                {labels.map(({ idx, label }) => (
-                  <span
-                    key={idx}
-                    className="bento-heatmap-month"
-                    style={{ left: `${idx * CELL_STRIDE}px` }}
-                  >
-                    {label}
-                  </span>
+        {/* Left: heatmap section */}
+        <div className="bento-chess-heatmap-section">
+          <div className="bento-chess-heatmap-header">
+            <span className="bento-label" style={{ padding: 0 }}>// chess</span>
+            {!loading && !error && user && (
+              <span className="bento-chess-total">
+                {user.count.all.toLocaleString()}g
+              </span>
+            )}
+          </div>
+
+          <div className="bento-heatmap-scroll">
+            <div className="bento-heatmap-layout">
+              <div className="bento-heatmap-days">
+                {["M", "", "W", "", "F", "", ""].map((d, i) => (
+                  <span key={i} className="bento-heatmap-day">{d}</span>
                 ))}
               </div>
 
-              <div className="bento-heatmap-grid">
-                {(loading
-                  ? Array.from({ length: 53 }, () =>
-                      Array.from({ length: 7 }, (_, d) => ({
-                        date: "", count: 0, future: false, skeleton: true, _d: d,
-                      }))
-                    )
-                  : heatmap
-                ).map((week, wi) => (
-                  <div key={wi} className="bento-heatmap-week">
-                    {week.map((cell, di) => (
-                      <div
-                        key={di}
-                        className={`bento-heatmap-cell${"skeleton" in cell && cell.skeleton ? " bento-heatmap-cell--skeleton" : ""}`}
-                        style={
-                          "skeleton" in cell && cell.skeleton
-                            ? undefined
-                            : { background: cellColor(cell as HeatmapCell) }
-                        }
-                        title={
-                          "skeleton" in cell || (cell as HeatmapCell).future
-                            ? undefined
-                            : `${(cell as HeatmapCell).date}: ${(cell as HeatmapCell).count} game${(cell as HeatmapCell).count !== 1 ? "s" : ""}`
-                        }
-                      />
-                    ))}
-                  </div>
-                ))}
+              <div className="bento-heatmap-weeks-col">
+                <div className="bento-heatmap-months">
+                  {labels.map(({ idx, label }) => (
+                    <span
+                      key={idx}
+                      className="bento-heatmap-month"
+                      style={{ left: `${idx * CELL_STRIDE}px` }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="bento-heatmap-grid">
+                  {(loading
+                    ? Array.from({ length: 53 }, () =>
+                        Array.from({ length: 7 }, (_, d) => ({
+                          date: "", count: 0, future: false, skeleton: true, _d: d,
+                        }))
+                      )
+                    : heatmap
+                  ).map((week, wi) => (
+                    <div key={wi} className="bento-heatmap-week">
+                      {week.map((cell, di) => (
+                        <div
+                          key={di}
+                          className={`bento-heatmap-cell${"skeleton" in cell && cell.skeleton ? " bento-heatmap-cell--skeleton" : ""}`}
+                          style={
+                            "skeleton" in cell && cell.skeleton
+                              ? undefined
+                              : { background: cellColor(cell as HeatmapCell) }
+                          }
+                          title={
+                            "skeleton" in cell || (cell as HeatmapCell).future
+                              ? undefined
+                              : `${(cell as HeatmapCell).date}: ${(cell as HeatmapCell).count} game${(cell as HeatmapCell).count !== 1 ? "s" : ""}`
+                          }
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Recent games */}
-        {!loading && displayGames.length > 0 && (
-          <div className="bento-games">
-            <span className="bento-games-label">recent</span>
-            {displayGames.map((g, i) =>
-              "_live" in g ? (
-                <LiveGameRow key="live" game={g} username={VITE_USERNAME} />
-              ) : (
-                <GameRow key={g.id ?? i} game={g} username={VITE_USERNAME} />
-              ),
-            )}
+        {/* Right: 5 game cards, horizontal */}
+        <div className="bento-games">
+          <span className="bento-games-header">recent games</span>
+          <div className="bento-games-row">
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="bento-game-card bento-game-card--skeleton" />
+                ))
+              : displayGames.map((g, i) =>
+                  "_live" in g ? (
+                    <LiveGameCard key="live" game={g} username={VITE_USERNAME} />
+                  ) : (
+                    <GameCard key={g.id ?? i} game={g} username={VITE_USERNAME} />
+                  ),
+                )}
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Ratings row */}
+      {/* ── Bottom: ratings full-width ── */}
       <div className="bento-ratings">
         {PERF_DISPLAY.map(({ key, label, Icon }) => {
           const perf = user?.perfs[key];
