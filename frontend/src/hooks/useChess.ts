@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import {
   getLichessUser,
   getLichessActivity,
+  getLichessRecentGames,
+  getLichessCurrentGame,
   type LichessUser,
   type LichessActivityDay,
+  type LichessGame,
+  type LichessCurrentGame,
 } from "../services/lichessService";
 
 export interface HeatmapCell {
@@ -15,7 +19,8 @@ export interface HeatmapCell {
 export interface ChessState {
   user: LichessUser | null;
   heatmap: HeatmapCell[][];
-  totalGames: number;
+  recentGames: LichessGame[];
+  currentGame: LichessCurrentGame | null;
   loading: boolean;
   error: boolean;
 }
@@ -54,20 +59,27 @@ function buildHeatmap(activity: LichessActivityDay[]): HeatmapCell[][] {
 export function useChess(): ChessState {
   const [user, setUser] = useState<LichessUser | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapCell[][]>([]);
-  const [totalGames, setTotalGames] = useState(0);
+  const [recentGames, setRecentGames] = useState<LichessGame[]>([]);
+  const [currentGame, setCurrentGame] = useState<LichessCurrentGame | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    Promise.all([getLichessUser(), getLichessActivity()])
-      .then(([userData, activity]) => {
+    Promise.all([
+      getLichessUser(),
+      getLichessActivity(),
+      getLichessRecentGames(5),
+      getLichessCurrentGame(),
+    ])
+      .then(([userData, activity, games, live]) => {
         setUser(userData);
         setHeatmap(buildHeatmap(activity));
-        setTotalGames(activity.reduce((s, d) => s + d.games, 0));
+        setRecentGames(games);
+        setCurrentGame(live);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
-  return { user, heatmap, totalGames, loading, error };
+  return { user, heatmap, recentGames, currentGame, loading, error };
 }
