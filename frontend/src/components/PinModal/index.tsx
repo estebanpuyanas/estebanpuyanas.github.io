@@ -117,8 +117,8 @@ export default function PinModal({ pinId, locationName, country, onClose }: Prop
                 {img.caption && (
                   <p className="pmodal-caption">{img.caption}</p>
                 )}
-                {img.dateTaken && (
-                  <span className="pmodal-date">{img.dateTaken}</span>
+                {img.uploadedAt && (
+                  <span className="pmodal-date">{img.uploadedAt}</span>
                 )}
               </div>
 

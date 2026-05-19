@@ -55,7 +55,23 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 	if s.cloudinary == nil || folder == "" {
 		return []model.Image{}, nil
 	}
-	return s.cloudinary.GetImagesByFolder(ctx, folder)
+
+	images, err := s.cloudinary.GetImagesByFolder(ctx, folder)
+	if err != nil {
+		return nil, err
+	}
+
+	for i, img := range images {
+		var caption, uploadedAt string
+		if err := s.db.QueryRowContext(ctx,
+			`SELECT caption, uploaded_at FROM pin_images WHERE public_id = ?`,
+			img.CloudinaryPublicID,
+		).Scan(&caption, &uploadedAt); err == nil {
+			images[i].Caption = caption
+			images[i].UploadedAt = uploadedAt
+		}
+	}
+	return images, nil
 }
 
 func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
@@ -108,5 +124,35 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 	if s.cloudinary == nil {
 		return nil, fmt.Errorf("cloudinary not configured")
 	}
-	return s.cloudinary.UploadImage(ctx, file, folder)
+
+	img, err := s.cloudinary.UploadImage(ctx, file, folder)
+	if err != nil {
+		return nil, err
+	}
+
+	_, dbErr := s.db.ExecContext(ctx,
+		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, caption) VALUES (?, ?, '')`,
+		img.CloudinaryPublicID, id)
+	if dbErr == nil {
+		_ = s.db.QueryRowContext(ctx,
+			`SELECT uploaded_at FROM pin_images WHERE public_id = ?`,
+			img.CloudinaryPublicID,
+		).Scan(&img.UploadedAt)
+	}
+
+	return img, nil
+}
+
+func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE pin_images SET caption = ? WHERE public_id = ? AND pin_id = ?`,
+		caption, publicID, pinID)
+	if err != nil {
+		return fmt.Errorf("update caption: %w", err)
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("image not found")
+	}
+	return nil
 }

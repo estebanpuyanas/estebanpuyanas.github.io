@@ -116,6 +116,28 @@ func (h *TravelPinHandler) UploadPinImage(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(image)
 }
 
+func (h *TravelPinHandler) UpdatePinImageCaption(w http.ResponseWriter, r *http.Request) {
+	pinID := r.PathValue("id")
+	if pinID == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	var req model.UpdateCaptionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PublicID == "" {
+		http.Error(w, `{"error":"publicId and caption are required"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.UpdatePinImageCaption(r.Context(), pinID, req.PublicID, req.Caption); err != nil {
+		if err.Error() == "image not found" {
+			http.Error(w, `{"error":"image not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to update caption"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *TravelPinHandler) GetCloudinaryFolders(w http.ResponseWriter, r *http.Request) {
 	folders, err := h.svc.GetCloudinaryFolders(r.Context())
 	if err != nil {

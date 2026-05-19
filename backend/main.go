@@ -81,6 +81,8 @@ func main() {
 		switch r.Method {
 		case http.MethodPost:
 			handler.AdminMiddleware(travelPinHandler.UploadPinImage)(w, r)
+		case http.MethodPatch:
+			handler.AdminMiddleware(travelPinHandler.UpdatePinImageCaption)(w, r)
 		default:
 			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
 		}
@@ -100,7 +102,7 @@ func main() {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, PATCH, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
