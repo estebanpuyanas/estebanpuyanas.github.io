@@ -4,7 +4,7 @@ export interface PinImage {
   cloudinaryPublicId: string;
   cloudinarySecureUrl: string;
   caption: string;
-  dateTaken: string;
+  uploadedAt: string;
 }
 
 export interface Pin {
@@ -43,6 +43,72 @@ export async function getPinImages(id: string): Promise<PinImage[]> {
   const res = await fetch(`${BASE_URL}/api/travel/pins/${id}/images`);
   if (!res.ok) throw new Error(`Failed to fetch images: ${res.status}`);
   return res.json();
+}
+
+export async function uploadPinImage(
+  pinId: string,
+  file: File,
+  token: string,
+): Promise<PinImage> {
+  const form = new FormData();
+  form.append("image", file);
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/images`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to upload image: ${res.status}`);
+  return res.json();
+}
+
+export async function updateImageCaption(
+  pinId: string,
+  publicId: string,
+  caption: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/images`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ publicId, caption }),
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to update caption: ${res.status}`);
+}
+
+export async function deletePinImage(
+  pinId: string,
+  publicId: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/images`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ publicId }),
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to delete image: ${res.status}`);
+}
+
+export async function syncPinImages(
+  pinId: string,
+  token: string,
+): Promise<number> {
+  const res = await fetch(
+    `${BASE_URL}/api/admin/travel/pins/${pinId}/images/sync`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to sync: ${res.status}`);
+  const data = await res.json();
+  return data.pruned as number;
 }
 
 export async function getCloudinaryFolders(token: string): Promise<string[]> {

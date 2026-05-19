@@ -1,11 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
 import {
   createPin,
   deletePin,
+  getPinImages,
+  uploadPinImage,
+  updateImageCaption,
+  deletePinImage,
+  syncPinImages,
   getCloudinaryFolders,
   type Pin,
+  type PinImage,
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
@@ -95,10 +101,24 @@ async function reverseGeocode(lat: number, lng: number) {
   }
 }
 
+function formatDate(raw: string): string {
+  if (!raw) return "";
+  try {
+    return new Date(raw).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch {
+    return raw;
+  }
+}
+
 type PanelState =
   | { mode: "idle" }
   | { mode: "new"; lat: number; lng: number; geocoding: boolean }
-  | { mode: "selected"; pin: Pin };
+  | { mode: "selected"; pin: Pin }
+  | { mode: "editing"; pin: Pin };
 
 export default function AdminPage() {
   const navigate = useNavigate();
@@ -127,12 +147,40 @@ export default function AdminPage() {
   const [folders, setFolders] = useState<string[]>([]);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
 
+  // ── Edit-mode state ───────────────────────────────────────────
+  const [pinImages, setPinImages] = useState<PinImage[]>([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [editingImage, setEditingImage] = useState<PinImage | null>(null);
+  const [captionDraft, setCaptionDraft] = useState("");
+  const [captionSaving, setCaptionSaving] = useState(false);
+  const [deletingImage, setDeletingImage] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!token) return;
     getCloudinaryFolders(token)
       .then(setFolders)
       .catch(() => {});
   }, [token]);
+
+  const editingPinId = panel.mode === "editing" ? panel.pin.id : null;
+  useEffect(() => {
+    if (!editingPinId) {
+      setPinImages([]);
+      setBrokenImages(new Set());
+      return;
+    }
+    setImagesLoading(true);
+    setBrokenImages(new Set());
+    setSubmitSuccess("");
+    getPinImages(editingPinId)
+      .then(setPinImages)
+      .catch(() => {})
+      .finally(() => setImagesLoading(false));
+  }, [editingPinId]);
 
   const markers = pins.map((p) => ({
     id: p.id,
@@ -253,6 +301,102 @@ export default function AdminPage() {
     }
   };
 
+  // ── Image upload ──────────────────────────────────────────────
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || panel.mode !== "editing") return;
+    e.target.value = "";
+    setUploadingImage(true);
+    setSubmitError("");
+    try {
+      const img = await uploadPinImage(panel.pin.id, file, token);
+      setPinImages((prev) => [img, ...prev]);
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // ── Caption save ──────────────────────────────────────────────
+  const handleSaveCaption = async () => {
+    if (!editingImage || panel.mode !== "editing") return;
+    setCaptionSaving(true);
+    try {
+      await updateImageCaption(
+        panel.pin.id,
+        editingImage.cloudinaryPublicId,
+        captionDraft,
+        token,
+      );
+      setPinImages((prev) =>
+        prev.map((img) =>
+          img.cloudinaryPublicId === editingImage.cloudinaryPublicId
+            ? { ...img, caption: captionDraft }
+            : img,
+        ),
+      );
+      setEditingImage(null);
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+    } finally {
+      setCaptionSaving(false);
+    }
+  };
+
+  // ── Image delete ──────────────────────────────────────────────
+  const handleDeleteImage = async () => {
+    if (!editingImage || panel.mode !== "editing") return;
+    if (!window.confirm("Delete this image? This cannot be undone.")) return;
+    setDeletingImage(true);
+    try {
+      await deletePinImage(
+        panel.pin.id,
+        editingImage.cloudinaryPublicId,
+        token,
+      );
+      setPinImages((prev) =>
+        prev.filter(
+          (img) => img.cloudinaryPublicId !== editingImage.cloudinaryPublicId,
+        ),
+      );
+      setEditingImage(null);
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Failed to delete image.");
+    } finally {
+      setDeletingImage(false);
+    }
+  };
+
+  // ── Sync with Cloudinary ──────────────────────────────────────
+  const handleSync = async () => {
+    if (panel.mode !== "editing") return;
+    setSyncing(true);
+    setSubmitError("");
+    try {
+      const pruned = await syncPinImages(panel.pin.id, token);
+      // Re-fetch images so the list reflects reality
+      const fresh = await getPinImages(panel.pin.id);
+      setPinImages(fresh);
+      setBrokenImages(new Set());
+      if (pruned > 0)
+        setSubmitSuccess(
+          `Synced! Removed ${pruned} deleted image${pruned === 1 ? "" : "s"}.`,
+        );
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Sync failed. Please try again.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // ── Gate screen ───────────────────────────────────────────────
   if (!token) {
     return (
@@ -349,6 +493,111 @@ export default function AdminPage() {
           >
             {deleting ? "deleting..." : "delete pin"}
           </button>
+          <button
+            className="admin-btn admin-btn--ghost"
+            onClick={() => {
+              setPanel({ mode: "editing", pin });
+              setSubmitError("");
+            }}
+          >
+            edit pin
+          </button>
+        </div>
+      );
+    }
+
+    if (panel.mode === "editing") {
+      const { pin } = panel;
+      const visibleImages = pinImages.filter(
+        (img) => !brokenImages.has(img.cloudinaryPublicId),
+      );
+      return (
+        <div className="admin-panel-section">
+          <div className="admin-panel-header">
+            <p className="admin-form-label">edit pin</p>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={handleSync}
+                disabled={syncing}
+                title="Remove DB records for images deleted from Cloudinary dashboard"
+              >
+                {syncing ? "syncing..." : "sync"}
+              </button>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={() => {
+                  setPanel({ mode: "selected", pin });
+                  setSubmitError("");
+                  setSubmitSuccess("");
+                }}
+              >
+                ← back
+              </button>
+            </div>
+          </div>
+
+          <div className="admin-pin-info">
+            <p className="admin-pin-name">{pin.locationName}</p>
+            <p className="admin-pin-country">{pin.country}</p>
+            <p className="admin-coord-val">
+              {pin.latitude.toFixed(4)}, {pin.longitude.toFixed(4)}
+            </p>
+          </div>
+
+          <button
+            className="admin-btn admin-btn--ghost admin-upload-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingImage}
+          >
+            {uploadingImage ? "uploading..." : "+ upload image"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleUploadImage}
+          />
+
+          {submitError && <p className="admin-error">{submitError}</p>}
+          {submitSuccess && <p className="admin-success">{submitSuccess}</p>}
+
+          {imagesLoading ? (
+            <p className="admin-images-hint">loading images...</p>
+          ) : visibleImages.length === 0 ? (
+            <p className="admin-images-hint">
+              no images yet. Use the button above to upload some photos from
+              this location!
+            </p>
+          ) : (
+            <div className="admin-image-grid">
+              {visibleImages.map((img) => (
+                <div key={img.cloudinaryPublicId} className="admin-image-card">
+                  <img
+                    src={img.cloudinarySecureUrl}
+                    alt={img.caption || ""}
+                    className="admin-image-thumb"
+                    onError={() =>
+                      setBrokenImages(
+                        (prev) => new Set([...prev, img.cloudinaryPublicId]),
+                      )
+                    }
+                  />
+                  <button
+                    className="admin-image-edit-btn"
+                    onClick={() => {
+                      setEditingImage(img);
+                      setCaptionDraft(img.caption);
+                    }}
+                    title="edit caption"
+                  >
+                    ✏
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       );
     }
@@ -424,7 +673,10 @@ export default function AdminPage() {
                   placeholder="e.g. travels/tokyo"
                   value={form.cloudinaryFolder}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, cloudinaryFolder: e.target.value }))
+                    setForm((f) => ({
+                      ...f,
+                      cloudinaryFolder: e.target.value,
+                    }))
                   }
                   onFocus={() => setShowFolderDropdown(true)}
                   onBlur={() =>
@@ -500,6 +752,72 @@ export default function AdminPage() {
         </div>
         <div className="admin-side">{renderPanel()}</div>
       </div>
+
+      {editingImage && (
+        <div
+          className="admin-img-modal-backdrop"
+          onClick={() => setEditingImage(null)}
+        >
+          <div className="admin-img-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-img-modal-header">
+              <p className="admin-form-label">edit image</p>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={() => setEditingImage(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <img
+              src={editingImage.cloudinarySecureUrl}
+              alt={editingImage.caption || ""}
+              className="admin-img-modal-image"
+            />
+
+            {editingImage.uploadedAt && (
+              <p className="admin-img-modal-date">
+                uploaded {formatDate(editingImage.uploadedAt)}
+              </p>
+            )}
+
+            <label className="admin-label">
+              caption
+              <textarea
+                className="admin-input admin-caption-input"
+                value={captionDraft}
+                onChange={(e) => setCaptionDraft(e.target.value)}
+                placeholder="add a caption..."
+                rows={3}
+              />
+            </label>
+
+            <div className="admin-img-modal-actions">
+              <button
+                className="admin-btn admin-btn--danger"
+                onClick={handleDeleteImage}
+                disabled={deletingImage || captionSaving}
+              >
+                {deletingImage ? "deleting..." : "delete image"}
+              </button>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={() => setEditingImage(null)}
+                disabled={captionSaving || deletingImage}
+              >
+                cancel
+              </button>
+              <button
+                className="admin-btn admin-btn--primary"
+                onClick={handleSaveCaption}
+                disabled={captionSaving || deletingImage}
+              >
+                {captionSaving ? "saving..." : "save caption"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

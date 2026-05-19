@@ -18,7 +18,10 @@ function getSavedMode(): ThemeMode {
       return saved;
   } catch {
     // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[useTheme] localStorage read failed, falling back to system");
+    if (import.meta.env.DEV)
+      console.warn(
+        "[useTheme] localStorage read failed, falling back to system",
+      );
   }
   return "system";
 }
@@ -48,7 +51,8 @@ export function useTheme() {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
       // eslint-disable-next-line no-console
-      if (import.meta.env.DEV) console.warn("[useTheme] localStorage write failed");
+      if (import.meta.env.DEV)
+        console.warn("[useTheme] localStorage write failed");
     }
     setModeState(next);
   };

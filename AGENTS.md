@@ -221,6 +221,7 @@ Deploy order matters:
 - **CORS is open (`*`).** Lock it down before handling anything sensitive in production.
 - **`react-leaflet` requires the Leaflet CSS** (`leaflet/dist/leaflet.css`) imported in `TravelsMap/index.tsx`.
 - **Cloudinary images** are served via Cloudinary's CDN using `CloudinarySecureURL`. Never proxy image bytes through the Go backend.
+- **Do NOT use the Cloudinary Admin API to list or look up assets** (`client.Admin.Assets`, `client.Admin.Asset`, etc.). It returns unreliable/empty results even when assets exist, which has previously caused images to appear missing and triggered spurious DB deletions during sync. The only Admin API calls that are acceptable are `RootFolders`/`SubFolders` for the folder combobox in the admin UI. For everything else: use the Upload API (`Upload`, `Destroy`) for write operations, and HEAD requests to the CDN URL to verify whether an asset still exists.
 - **Pin images are lazy-loaded.** `GET /api/travel/pins` returns empty `images: []` for every pin. Images are only fetched when a user clicks a pin, via `GET /api/travel/pins/:id/images`. Do not add eager image fetching back to `GetAllPins` — it makes N Cloudinary API calls on every page load.
 - **`VITE_API_BASE_URL` is a build-time constant.** Changing it in Railway requires a frontend redeploy to take effect.
 - **SQLite on Railway needs a Volume.** Without a Volume mounted at `/data` and `DB_PATH=/data/travels.db`, the database resets on every deploy.

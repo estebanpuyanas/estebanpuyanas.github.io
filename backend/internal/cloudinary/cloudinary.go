@@ -8,14 +8,15 @@ import (
 
 	cld "github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api"
-	"github.com/cloudinary/cloudinary-go/v2/api/admin"
+	"github.com/cloudinary/cloudinary-go/v2/api/admin" // used only for folder listing (RootFolders/SubFolders)
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 
 	"lastfm/api/internal/model"
 )
 
 type CloudinaryService struct {
-	client *cld.Cloudinary
+	client    *cld.Cloudinary
+	cloudName string
 }
 
 func NewCloudinaryService(cloudName, apiKey, apiSecret string) (*CloudinaryService, error) {
@@ -25,8 +26,10 @@ func NewCloudinaryService(cloudName, apiKey, apiSecret string) (*CloudinaryServi
 	}
 	client.Config.URL.Secure = true
 
-	return &CloudinaryService{client: client}, nil
+	return &CloudinaryService{client: client, cloudName: cloudName}, nil
 }
+
+func (s *CloudinaryService) CloudName() string { return s.cloudName }
 
 func (s *CloudinaryService) ListFolders(ctx context.Context) ([]string, error) {
 	var result []string
@@ -82,22 +85,14 @@ func (s *CloudinaryService) UploadImage(ctx context.Context, file io.Reader, fol
 	}, nil
 }
 
-func (s *CloudinaryService) GetImagesByFolder(ctx context.Context, folder string) ([]model.Image, error) {
-	resp, err := s.client.Admin.Assets(ctx, admin.AssetsParams{
-		Prefix:    folder,
-		AssetType: api.Image,
-	})
+func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) error {
+	resp, err := s.client.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch images from Cloudinary: %w", err)
+		return fmt.Errorf("destroy: %w", err)
 	}
-
-	images := make([]model.Image, 0, len(resp.Assets))
-	for _, a := range resp.Assets {
-		images = append(images, model.Image{
-			CloudinaryPublicID:  a.PublicID,
-			CloudinarySecureURL: a.SecureURL,
-		})
+	if resp.Error.Message != "" {
+		return fmt.Errorf("destroy: %s", resp.Error.Message)
 	}
-
-	return images, nil
+	return nil
 }
+

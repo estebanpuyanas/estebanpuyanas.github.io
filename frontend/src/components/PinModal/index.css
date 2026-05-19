@@ -14,8 +14,12 @@
 }
 
 @keyframes pmodalFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ─── Card ───────────────────────────────────────────────────── */
@@ -32,8 +36,14 @@
 }
 
 @keyframes pmodalSlideUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ─── Header ─────────────────────────────────────────────────── */
@@ -81,7 +91,9 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   margin-left: 1rem;
   padding: 0;
 }
@@ -146,8 +158,12 @@
 }
 
 @keyframes pmodalImgFade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ─── Prev / Next arrows ─────────────────────────────────────── */
@@ -167,7 +183,9 @@
   justify-content: center;
   cursor: pointer;
   z-index: 2;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   padding: 0;
   backdrop-filter: blur(4px);
 }
@@ -177,8 +195,12 @@
   color: var(--text);
 }
 
-.pmodal-arrow--left  { left: 0.75rem; }
-.pmodal-arrow--right { right: 0.75rem; }
+.pmodal-arrow--left {
+  left: 0.75rem;
+}
+.pmodal-arrow--right {
+  right: 0.75rem;
+}
 
 /* ─── Footer (counter, caption, date) ───────────────────────── */
 .pmodal-footer {

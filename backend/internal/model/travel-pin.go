@@ -16,3 +16,8 @@ type CreatePinRequest struct {
 	Longitude        float64 `json:"longitude"`
 	CloudinaryFolder string  `json:"cloudinaryFolder"`
 }
+
+type UpdateCaptionRequest struct {
+	PublicID string `json:"publicId"`
+	Caption  string `json:"caption"`
+}

@@ -4,5 +4,5 @@ type Image struct {
 	CloudinaryPublicID  string `json:"cloudinaryPublicId"`
 	CloudinarySecureURL string `json:"cloudinarySecureUrl"`
 	Caption             string `json:"caption"`
-	DateTaken           string `json:"dateTaken"`
+	UploadedAt          string `json:"uploadedAt"`
 }

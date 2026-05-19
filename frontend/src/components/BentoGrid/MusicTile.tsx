@@ -69,7 +69,9 @@ export default function MusicTile() {
             <p className="bento-music-meta">
               {track.artist} · {track.album}
             </p>
-            <div className={`bento-eq-bars${track.nowPlaying ? "" : " bento-eq-bars--paused"}`}>
+            <div
+              className={`bento-eq-bars${track.nowPlaying ? "" : " bento-eq-bars--paused"}`}
+            >
               <span className="bento-eq-bar" />
               <span className="bento-eq-bar" />
               <span className="bento-eq-bar" />
@@ -95,7 +97,9 @@ export default function MusicTile() {
               value={rec}
               onChange={(e) => setRec(e.target.value)}
             />
-            <button className="bento-rec-submit" type="submit">→</button>
+            <button className="bento-rec-submit" type="submit">
+              →
+            </button>
           </>
         )}
       </form>

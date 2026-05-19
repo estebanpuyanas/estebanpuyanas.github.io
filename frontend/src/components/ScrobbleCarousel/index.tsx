@@ -16,7 +16,11 @@ interface Props {
 
 function formatTime(d: Date): string {
   const date = d.toLocaleDateString([], { month: "long", day: "numeric" });
-  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  const time = d.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
   return `${date} at ${time}`;
 }
 
