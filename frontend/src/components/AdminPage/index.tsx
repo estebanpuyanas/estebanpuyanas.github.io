@@ -7,6 +7,8 @@ import {
   getPinImages,
   uploadPinImage,
   updateImageCaption,
+  deletePinImage,
+  syncPinImages,
   getCloudinaryFolders,
   type Pin,
   type PinImage,
@@ -152,6 +154,9 @@ export default function AdminPage() {
   const [editingImage, setEditingImage] = useState<PinImage | null>(null);
   const [captionDraft, setCaptionDraft] = useState("");
   const [captionSaving, setCaptionSaving] = useState(false);
+  const [deletingImage, setDeletingImage] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -165,9 +170,12 @@ export default function AdminPage() {
   useEffect(() => {
     if (!editingPinId) {
       setPinImages([]);
+      setBrokenImages(new Set());
       return;
     }
     setImagesLoading(true);
+    setBrokenImages(new Set());
+    setSubmitSuccess("");
     getPinImages(editingPinId)
       .then(setPinImages)
       .catch(() => {})
@@ -339,6 +347,56 @@ export default function AdminPage() {
     }
   };
 
+  // ── Image delete ──────────────────────────────────────────────
+  const handleDeleteImage = async () => {
+    if (!editingImage || panel.mode !== "editing") return;
+    if (!window.confirm("Delete this image? This cannot be undone.")) return;
+    setDeletingImage(true);
+    try {
+      await deletePinImage(
+        panel.pin.id,
+        editingImage.cloudinaryPublicId,
+        token,
+      );
+      setPinImages((prev) =>
+        prev.filter(
+          (img) => img.cloudinaryPublicId !== editingImage.cloudinaryPublicId,
+        ),
+      );
+      setEditingImage(null);
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Failed to delete image.");
+    } finally {
+      setDeletingImage(false);
+    }
+  };
+
+  // ── Sync with Cloudinary ──────────────────────────────────────
+  const handleSync = async () => {
+    if (panel.mode !== "editing") return;
+    setSyncing(true);
+    setSubmitError("");
+    try {
+      const pruned = await syncPinImages(panel.pin.id, token);
+      // Re-fetch images so the list reflects reality
+      const fresh = await getPinImages(panel.pin.id);
+      setPinImages(fresh);
+      setBrokenImages(new Set());
+      if (pruned > 0)
+        setSubmitSuccess(
+          `Synced! Removed ${pruned} deleted image${pruned === 1 ? "" : "s"}.`,
+        );
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Sync failed. Please try again.");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // ── Gate screen ───────────────────────────────────────────────
   if (!token) {
     return (
@@ -450,19 +508,33 @@ export default function AdminPage() {
 
     if (panel.mode === "editing") {
       const { pin } = panel;
+      const visibleImages = pinImages.filter(
+        (img) => !brokenImages.has(img.cloudinaryPublicId),
+      );
       return (
         <div className="admin-panel-section">
           <div className="admin-panel-header">
             <p className="admin-form-label">edit pin</p>
-            <button
-              className="admin-btn admin-btn--ghost"
-              onClick={() => {
-                setPanel({ mode: "selected", pin });
-                setSubmitError("");
-              }}
-            >
-              ← back
-            </button>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={handleSync}
+                disabled={syncing}
+                title="Remove DB records for images deleted from Cloudinary dashboard"
+              >
+                {syncing ? "syncing..." : "sync"}
+              </button>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={() => {
+                  setPanel({ mode: "selected", pin });
+                  setSubmitError("");
+                  setSubmitSuccess("");
+                }}
+              >
+                ← back
+              </button>
+            </div>
           </div>
 
           <div className="admin-pin-info">
@@ -489,21 +561,28 @@ export default function AdminPage() {
           />
 
           {submitError && <p className="admin-error">{submitError}</p>}
+          {submitSuccess && <p className="admin-success">{submitSuccess}</p>}
 
           {imagesLoading ? (
             <p className="admin-images-hint">loading images...</p>
-          ) : pinImages.length === 0 ? (
+          ) : visibleImages.length === 0 ? (
             <p className="admin-images-hint">
-              no images yet — upload one above.
+              no images yet. Use the button above to upload some photos from
+              this location!
             </p>
           ) : (
             <div className="admin-image-grid">
-              {pinImages.map((img) => (
+              {visibleImages.map((img) => (
                 <div key={img.cloudinaryPublicId} className="admin-image-card">
                   <img
                     src={img.cloudinarySecureUrl}
                     alt={img.caption || ""}
                     className="admin-image-thumb"
+                    onError={() =>
+                      setBrokenImages(
+                        (prev) => new Set([...prev, img.cloudinaryPublicId]),
+                      )
+                    }
                   />
                   <button
                     className="admin-image-edit-btn"
@@ -715,16 +794,23 @@ export default function AdminPage() {
 
             <div className="admin-img-modal-actions">
               <button
+                className="admin-btn admin-btn--danger"
+                onClick={handleDeleteImage}
+                disabled={deletingImage || captionSaving}
+              >
+                {deletingImage ? "deleting..." : "delete image"}
+              </button>
+              <button
                 className="admin-btn admin-btn--ghost"
                 onClick={() => setEditingImage(null)}
-                disabled={captionSaving}
+                disabled={captionSaving || deletingImage}
               >
                 cancel
               </button>
               <button
                 className="admin-btn admin-btn--primary"
                 onClick={handleSaveCaption}
-                disabled={captionSaving}
+                disabled={captionSaving || deletingImage}
               >
                 {captionSaving ? "saving..." : "save caption"}
               </button>

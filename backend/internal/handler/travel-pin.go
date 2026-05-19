@@ -138,6 +138,45 @@ func (h *TravelPinHandler) UpdatePinImageCaption(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *TravelPinHandler) DeletePinImage(w http.ResponseWriter, r *http.Request) {
+	pinID := r.PathValue("id")
+	if pinID == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	var req struct {
+		PublicID string `json:"publicId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PublicID == "" {
+		http.Error(w, `{"error":"publicId is required"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.DeletePinImage(r.Context(), pinID, req.PublicID); err != nil {
+		if err.Error() == "image not found" {
+			http.Error(w, `{"error":"image not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to delete image"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *TravelPinHandler) SyncPinImages(w http.ResponseWriter, r *http.Request) {
+	pinID := r.PathValue("id")
+	if pinID == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	count, err := h.svc.SyncPinImages(r.Context(), pinID)
+	if err != nil {
+		http.Error(w, `{"error":"sync failed"}`, http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{"pruned": count})
+}
+
 func (h *TravelPinHandler) GetCloudinaryFolders(w http.ResponseWriter, r *http.Request) {
 	folders, err := h.svc.GetCloudinaryFolders(r.Context())
 	if err != nil {

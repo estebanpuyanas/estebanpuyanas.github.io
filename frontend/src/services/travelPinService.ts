@@ -80,6 +80,37 @@ export async function updateImageCaption(
   if (!res.ok) throw new Error(`Failed to update caption: ${res.status}`);
 }
 
+export async function deletePinImage(
+  pinId: string,
+  publicId: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/images`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ publicId }),
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to delete image: ${res.status}`);
+}
+
+export async function syncPinImages(
+  pinId: string,
+  token: string,
+): Promise<number> {
+  const res = await fetch(
+    `${BASE_URL}/api/admin/travel/pins/${pinId}/images/sync`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to sync: ${res.status}`);
+  const data = await res.json();
+  return data.pruned as number;
+}
+
 export async function getCloudinaryFolders(token: string): Promise<string[]> {
   const res = await fetch(`${BASE_URL}/api/admin/cloudinary/folders`, {
     headers: { Authorization: `Bearer ${token}` },

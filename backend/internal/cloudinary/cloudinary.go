@@ -85,6 +85,17 @@ func (s *CloudinaryService) UploadImage(ctx context.Context, file io.Reader, fol
 	}, nil
 }
 
+func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) error {
+	resp, err := s.client.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID})
+	if err != nil {
+		return fmt.Errorf("destroy: %w", err)
+	}
+	if resp.Error.Message != "" {
+		return fmt.Errorf("destroy: %s", resp.Error.Message)
+	}
+	return nil
+}
+
 func (s *CloudinaryService) GetImagesByFolder(ctx context.Context, folder string) ([]model.Image, error) {
 	resp, err := s.client.Admin.Assets(ctx, admin.AssetsParams{
 		Prefix:    folder,

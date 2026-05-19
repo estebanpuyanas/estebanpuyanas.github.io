@@ -158,6 +158,76 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 	return img, nil
 }
 
+func (s *TravelPinService) DeletePinImage(ctx context.Context, pinID, publicID string) error {
+	var count int
+	err := s.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+		publicID, pinID).Scan(&count)
+	if err != nil || count == 0 {
+		return fmt.Errorf("image not found")
+	}
+	if s.cloudinary != nil {
+		// ignore error: "not found" from Cloudinary means already deleted
+		_ = s.cloudinary.DeleteImage(ctx, publicID)
+	}
+	_, err = s.db.ExecContext(ctx,
+		`DELETE FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+		publicID, pinID)
+	return err
+}
+
+// SyncPinImages cross-references the pin's Cloudinary folder with the DB and
+// removes records for assets that no longer exist. Returns the count pruned.
+func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int, error) {
+	var folder string
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, pinID).Scan(&folder)
+	if err == sql.ErrNoRows {
+		return 0, fmt.Errorf("pin not found")
+	}
+	if err != nil {
+		return 0, fmt.Errorf("query pin: %w", err)
+	}
+	if s.cloudinary == nil || folder == "" {
+		return 0, nil
+	}
+
+	live, err := s.cloudinary.GetImagesByFolder(ctx, folder)
+	if err != nil {
+		return 0, fmt.Errorf("cloudinary: %w", err)
+	}
+	liveSet := make(map[string]bool, len(live))
+	for _, img := range live {
+		liveSet[img.CloudinaryPublicID] = true
+	}
+
+	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
+	if err != nil {
+		return 0, fmt.Errorf("query images: %w", err)
+	}
+	defer rows.Close()
+
+	var stale []string
+	for rows.Next() {
+		var pubID string
+		if err := rows.Scan(&pubID); err != nil {
+			continue
+		}
+		if !liveSet[pubID] {
+			stale = append(stale, pubID)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("iterate images: %w", err)
+	}
+
+	for _, pubID := range stale {
+		_, _ = s.db.ExecContext(ctx,
+			`DELETE FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+			pubID, pinID)
+	}
+	return len(stale), nil
+}
+
 func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {
 	result, err := s.db.ExecContext(ctx,
 		`UPDATE pin_images SET caption = ? WHERE public_id = ? AND pin_id = ?`,

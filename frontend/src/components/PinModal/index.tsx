@@ -9,7 +9,12 @@ interface Props {
   onClose: () => void;
 }
 
-export default function PinModal({ pinId, locationName, country, onClose }: Props) {
+export default function PinModal({
+  pinId,
+  locationName,
+  country,
+  onClose,
+}: Props) {
   const [images, setImages] = useState<PinImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -53,7 +58,11 @@ export default function PinModal({ pinId, locationName, country, onClose }: Prop
             <span className="pmodal-location">{locationName}</span>
             <span className="pmodal-country">{country}</span>
           </div>
-          <button className="pmodal-close" onClick={onClose} aria-label="Close modal">
+          <button
+            className="pmodal-close"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
             ✕
           </button>
         </div>
@@ -114,9 +123,7 @@ export default function PinModal({ pinId, locationName, country, onClose }: Prop
                     {current + 1} / {images.length}
                   </span>
                 )}
-                {img.caption && (
-                  <p className="pmodal-caption">{img.caption}</p>
-                )}
+                {img.caption && <p className="pmodal-caption">{img.caption}</p>}
                 {img.uploadedAt && (
                   <span className="pmodal-date">{img.uploadedAt}</span>
                 )}

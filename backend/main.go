@@ -83,10 +83,14 @@ func main() {
 			handler.AdminMiddleware(travelPinHandler.UploadPinImage)(w, r)
 		case http.MethodPatch:
 			handler.AdminMiddleware(travelPinHandler.UpdatePinImageCaption)(w, r)
+		case http.MethodDelete:
+			handler.AdminMiddleware(travelPinHandler.DeletePinImage)(w, r)
 		default:
 			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
 		}
 	})
+	mux.HandleFunc("POST /api/admin/travel/pins/{id}/images/sync",
+		handler.AdminMiddleware(travelPinHandler.SyncPinImages))
 
 	port := os.Getenv("PORT")
 	if port == "" {
