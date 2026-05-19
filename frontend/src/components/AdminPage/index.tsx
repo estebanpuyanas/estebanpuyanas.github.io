@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
 import {
   createPin,
   deletePin,
+  getCloudinaryFolders,
   type Pin,
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
@@ -42,7 +43,8 @@ function getStoredToken(): string {
     return localStorage.getItem(TOKEN_KEY) ?? "";
   } catch {
     // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage read failed");
+    if (import.meta.env.DEV)
+      console.warn("[AdminPage] localStorage read failed");
     return "";
   }
 }
@@ -52,7 +54,8 @@ function storeToken(t: string) {
     localStorage.setItem(TOKEN_KEY, t);
   } catch {
     // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage write failed");
+    if (import.meta.env.DEV)
+      console.warn("[AdminPage] localStorage write failed");
   }
 }
 
@@ -61,7 +64,8 @@ function clearToken() {
     localStorage.removeItem(TOKEN_KEY);
   } catch {
     // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage delete failed");
+    if (import.meta.env.DEV)
+      console.warn("[AdminPage] localStorage delete failed");
   }
 }
 
@@ -119,6 +123,16 @@ export default function AdminPage() {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  const [folders, setFolders] = useState<string[]>([]);
+  const [showFolderDropdown, setShowFolderDropdown] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    getCloudinaryFolders(token)
+      .then(setFolders)
+      .catch(() => {});
+  }, [token]);
 
   const markers = pins.map((p) => ({
     id: p.id,
@@ -394,15 +408,60 @@ export default function AdminPage() {
 
         <label className="admin-label">
           cloudinary folder
-          <input
-            className="admin-input"
-            type="text"
-            placeholder="e.g. travels/tokyo"
-            value={form.cloudinaryFolder}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, cloudinaryFolder: e.target.value }))
-            }
-          />
+          {(() => {
+            const q = form.cloudinaryFolder.toLowerCase();
+            const matches = folders.filter((f) => f.toLowerCase().includes(q));
+            const isNew =
+              form.cloudinaryFolder !== "" &&
+              !folders.includes(form.cloudinaryFolder);
+            const showList =
+              showFolderDropdown && (isNew || matches.length > 0);
+            return (
+              <div className="admin-combobox">
+                <input
+                  className="admin-input"
+                  type="text"
+                  placeholder="e.g. travels/tokyo"
+                  value={form.cloudinaryFolder}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, cloudinaryFolder: e.target.value }))
+                  }
+                  onFocus={() => setShowFolderDropdown(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowFolderDropdown(false), 150)
+                  }
+                  autoComplete="off"
+                />
+                {showList && (
+                  <ul className="admin-combobox-list">
+                    {isNew && (
+                      <li
+                        className="admin-combobox-item admin-combobox-item--create"
+                        onMouseDown={() => setShowFolderDropdown(false)}
+                      >
+                        create: {form.cloudinaryFolder}
+                      </li>
+                    )}
+                    {matches.map((f) => (
+                      <li
+                        key={f}
+                        className="admin-combobox-item"
+                        onMouseDown={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            cloudinaryFolder: f,
+                          }));
+                          setShowFolderDropdown(false);
+                        }}
+                      >
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })()}
         </label>
 
         {submitError && <p className="admin-error">{submitError}</p>}

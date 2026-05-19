@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 
 	"github.com/google/uuid"
 
@@ -69,6 +70,13 @@ func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *TravelPinService) GetCloudinaryFolders(ctx context.Context) ([]string, error) {
+	if s.cloudinary == nil {
+		return []string{}, nil
+	}
+	return s.cloudinary.ListFolders(ctx)
+}
+
 func (s *TravelPinService) CreatePin(ctx context.Context, req model.CreatePinRequest) (model.TravelPin, error) {
 	id := uuid.New().String()
 	_, err := s.db.ExecContext(ctx, `
@@ -86,4 +94,19 @@ func (s *TravelPinService) CreatePin(ctx context.Context, req model.CreatePinReq
 		Longitude:    req.Longitude,
 		Images:       []model.Image{},
 	}, nil
+}
+
+func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file io.Reader) (*model.Image, error) {
+	var folder string
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, id).Scan(&folder)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("pin not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("query pin: %w", err)
+	}
+	if s.cloudinary == nil {
+		return nil, fmt.Errorf("cloudinary not configured")
+	}
+	return s.cloudinary.UploadImage(ctx, file, folder)
 }

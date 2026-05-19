@@ -66,11 +66,21 @@ func main() {
 	})
 
 	mux.HandleFunc("GET /api/travel/pins/{id}/images", travelPinHandler.GetPinImages)
+	mux.HandleFunc("GET /api/admin/cloudinary/folders", handler.AdminMiddleware(travelPinHandler.GetCloudinaryFolders))
 
 	mux.HandleFunc("/api/travel/pins/{id}", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodDelete:
 			handler.AdminMiddleware(travelPinHandler.DeletePin)(w, r)
+		default:
+			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/admin/travel/pins/{id}/images", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handler.AdminMiddleware(travelPinHandler.UploadPinImage)(w, r)
 		default:
 			http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
 		}

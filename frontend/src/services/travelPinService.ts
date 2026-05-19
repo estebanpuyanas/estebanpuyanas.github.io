@@ -45,6 +45,15 @@ export async function getPinImages(id: string): Promise<PinImage[]> {
   return res.json();
 }
 
+export async function getCloudinaryFolders(token: string): Promise<string[]> {
+  const res = await fetch(`${BASE_URL}/api/admin/cloudinary/folders`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to fetch folders: ${res.status}`);
+  return res.json();
+}
+
 export async function createPin(
   payload: CreatePinPayload,
   token: string,
