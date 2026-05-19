@@ -52,26 +52,41 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 	if err != nil {
 		return nil, fmt.Errorf("query pin: %w", err)
 	}
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT public_id, secure_url, caption, uploaded_at
+		FROM pin_images WHERE pin_id = ? ORDER BY uploaded_at DESC`, id)
+	if err != nil {
+		return nil, fmt.Errorf("query images: %w", err)
+	}
+	defer rows.Close()
+
+	var images []model.Image
+	for rows.Next() {
+		var img model.Image
+		var secureURL string
+		if err := rows.Scan(&img.CloudinaryPublicID, &secureURL, &img.Caption, &img.UploadedAt); err != nil {
+			return nil, fmt.Errorf("scan image: %w", err)
+		}
+		if secureURL != "" {
+			img.CloudinarySecureURL = secureURL
+		} else if s.cloudinary != nil {
+			img.CloudinarySecureURL = "https://res.cloudinary.com/" + s.cloudinary.CloudName() + "/image/upload/" + img.CloudinaryPublicID
+		}
+		images = append(images, img)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate images: %w", err)
+	}
+	if len(images) > 0 {
+		return images, nil
+	}
+
+	// No DB records yet — fall back to Cloudinary Admin API (legacy pins)
 	if s.cloudinary == nil || folder == "" {
 		return []model.Image{}, nil
 	}
-
-	images, err := s.cloudinary.GetImagesByFolder(ctx, folder)
-	if err != nil {
-		return nil, err
-	}
-
-	for i, img := range images {
-		var caption, uploadedAt string
-		if err := s.db.QueryRowContext(ctx,
-			`SELECT caption, uploaded_at FROM pin_images WHERE public_id = ?`,
-			img.CloudinaryPublicID,
-		).Scan(&caption, &uploadedAt); err == nil {
-			images[i].Caption = caption
-			images[i].UploadedAt = uploadedAt
-		}
-	}
-	return images, nil
+	return s.cloudinary.GetImagesByFolder(ctx, folder)
 }
 
 func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
@@ -131,8 +146,8 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 	}
 
 	_, dbErr := s.db.ExecContext(ctx,
-		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, caption) VALUES (?, ?, '')`,
-		img.CloudinaryPublicID, id)
+		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, secure_url, caption) VALUES (?, ?, ?, '')`,
+		img.CloudinaryPublicID, id, img.CloudinarySecureURL)
 	if dbErr == nil {
 		_ = s.db.QueryRowContext(ctx,
 			`SELECT uploaded_at FROM pin_images WHERE public_id = ?`,

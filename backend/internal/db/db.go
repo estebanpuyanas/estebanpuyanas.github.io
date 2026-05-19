@@ -36,5 +36,7 @@ func Open(path string) (*sql.DB, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("migrate schema: %w", err)
 	}
+	// idempotent! fails silently if column already exists
+	_, _ = db.Exec(`ALTER TABLE pin_images ADD COLUMN secure_url TEXT NOT NULL DEFAULT ''`)
 	return db, nil
 }

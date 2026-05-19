@@ -15,7 +15,8 @@ import (
 )
 
 type CloudinaryService struct {
-	client *cld.Cloudinary
+	client    *cld.Cloudinary
+	cloudName string
 }
 
 func NewCloudinaryService(cloudName, apiKey, apiSecret string) (*CloudinaryService, error) {
@@ -25,8 +26,10 @@ func NewCloudinaryService(cloudName, apiKey, apiSecret string) (*CloudinaryServi
 	}
 	client.Config.URL.Secure = true
 
-	return &CloudinaryService{client: client}, nil
+	return &CloudinaryService{client: client, cloudName: cloudName}, nil
 }
+
+func (s *CloudinaryService) CloudName() string { return s.cloudName }
 
 func (s *CloudinaryService) ListFolders(ctx context.Context) ([]string, error) {
 	var result []string

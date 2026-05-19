@@ -1,12 +1,8 @@
 # Backend
 
-- [ ] Set up cloudinary connection.
-
+- [ ] Handle cleanup for deletion of images.
 - [ ] Services/controllers for images:
-    - [ ] get images by location.
-    - [ ] add images to location.
     - [ ] delete images from location.
-    - [ ] change image caption and other info.
 
 - [ ] Determine models/controllers/services for music blog posts:
     - [ ] Create an Apple Music Replay type list.
@@ -15,5 +11,8 @@
 # Frontend
 
 - [ ] Create button to upload images to location pins.
+- [ ] Stop display of deleted images on location dashboard.
+- [ ] Add button for deleting images on location dashboard.
+
 
 # Misc
