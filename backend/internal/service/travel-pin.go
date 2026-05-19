@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/google/uuid"
 
@@ -78,15 +79,10 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("iterate images: %w", err)
 	}
-	if len(images) > 0 {
-		return images, nil
-	}
-
-	// No DB records yet — fall back to Cloudinary Admin API (legacy pins)
-	if s.cloudinary == nil || folder == "" {
+	if images == nil {
 		return []model.Image{}, nil
 	}
-	return s.cloudinary.GetImagesByFolder(ctx, folder)
+	return images, nil
 }
 
 func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
@@ -176,48 +172,60 @@ func (s *TravelPinService) DeletePinImage(ctx context.Context, pinID, publicID s
 	return err
 }
 
-// SyncPinImages cross-references the pin's Cloudinary folder with the DB and
-// removes records for assets that no longer exist. Returns the count pruned.
+// SyncPinImages checks each DB image record with a HEAD request to its
+// Cloudinary CDN URL and removes records for assets that return 404.
+// This avoids the unreliable Cloudinary Admin API entirely.
 func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int, error) {
-	var folder string
-	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, pinID).Scan(&folder)
-	if err == sql.ErrNoRows {
+	var exists int
+	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = ?`, pinID).Scan(&exists)
+	if err != nil || exists == 0 {
 		return 0, fmt.Errorf("pin not found")
 	}
-	if err != nil {
-		return 0, fmt.Errorf("query pin: %w", err)
-	}
-	if s.cloudinary == nil || folder == "" {
-		return 0, nil
-	}
 
-	live, err := s.cloudinary.GetImagesByFolder(ctx, folder)
-	if err != nil {
-		return 0, fmt.Errorf("cloudinary: %w", err)
-	}
-	liveSet := make(map[string]bool, len(live))
-	for _, img := range live {
-		liveSet[img.CloudinaryPublicID] = true
-	}
-
-	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT public_id, secure_url FROM pin_images WHERE pin_id = ?`, pinID)
 	if err != nil {
 		return 0, fmt.Errorf("query images: %w", err)
 	}
-	defer rows.Close()
 
-	var stale []string
+	type record struct {
+		publicID  string
+		secureURL string
+	}
+	var records []record
 	for rows.Next() {
-		var pubID string
-		if err := rows.Scan(&pubID); err != nil {
+		var r record
+		if err := rows.Scan(&r.publicID, &r.secureURL); err != nil {
 			continue
 		}
-		if !liveSet[pubID] {
-			stale = append(stale, pubID)
-		}
+		records = append(records, r)
 	}
+	rows.Close()
 	if err := rows.Err(); err != nil {
 		return 0, fmt.Errorf("iterate images: %w", err)
+	}
+
+	var stale []string
+	for _, rec := range records {
+		url := rec.secureURL
+		if url == "" && s.cloudinary != nil {
+			url = "https://res.cloudinary.com/" + s.cloudinary.CloudName() + "/image/upload/" + rec.publicID
+		}
+		if url == "" {
+			continue
+		}
+		req, err := http.NewRequestWithContext(ctx, http.MethodHead, url, nil)
+		if err != nil {
+			continue
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			continue // network error — skip, don't assume deleted
+		}
+		resp.Body.Close()
+		if resp.StatusCode == http.StatusNotFound {
+			stale = append(stale, rec.publicID)
+		}
 	}
 
 	for _, pubID := range stale {

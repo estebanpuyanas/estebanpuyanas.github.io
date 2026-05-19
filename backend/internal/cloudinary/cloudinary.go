@@ -8,7 +8,7 @@ import (
 
 	cld "github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api"
-	"github.com/cloudinary/cloudinary-go/v2/api/admin"
+	"github.com/cloudinary/cloudinary-go/v2/api/admin" // used only for folder listing (RootFolders/SubFolders)
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 
 	"lastfm/api/internal/model"
@@ -96,22 +96,3 @@ func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) er
 	return nil
 }
 
-func (s *CloudinaryService) GetImagesByFolder(ctx context.Context, folder string) ([]model.Image, error) {
-	resp, err := s.client.Admin.Assets(ctx, admin.AssetsParams{
-		Prefix:    folder,
-		AssetType: api.Image,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch images from Cloudinary: %w", err)
-	}
-
-	images := make([]model.Image, 0, len(resp.Assets))
-	for _, a := range resp.Assets {
-		images = append(images, model.Image{
-			CloudinaryPublicID:  a.PublicID,
-			CloudinarySecureURL: a.SecureURL,
-		})
-	}
-
-	return images, nil
-}
