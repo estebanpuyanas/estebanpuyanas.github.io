@@ -85,6 +85,47 @@ func (h *TravelPinHandler) DeletePin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *TravelPinHandler) UploadPinImage(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, `{"error":"invalid multipart form (max 10 MB)"}`, http.StatusBadRequest)
+		return
+	}
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		http.Error(w, `{"error":"missing image field in form"}`, http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	image, err := h.svc.UploadPinImage(r.Context(), id, file)
+	if err != nil {
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to upload image"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(image)
+}
+
+func (h *TravelPinHandler) GetCloudinaryFolders(w http.ResponseWriter, r *http.Request) {
+	folders, err := h.svc.GetCloudinaryFolders(r.Context())
+	if err != nil {
+		http.Error(w, `{"error":"failed to list folders"}`, http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(folders)
+}
+
 // AdminMiddleware rejects requests that don't carry the correct bearer token.
 func AdminMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

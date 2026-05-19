@@ -276,6 +276,51 @@
   cursor: not-allowed;
 }
 
+/* ─── Folder combobox ────────────────────────────────────────── */
+.admin-combobox {
+  position: relative;
+}
+
+.admin-combobox .admin-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-combobox-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  margin: 0;
+  padding: 0.2rem 0;
+  list-style: none;
+  background: var(--bg-3);
+  border: 1px solid var(--border-light);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.admin-combobox-item {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-2);
+  padding: 0.38rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.admin-combobox-item:hover {
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+.admin-combobox-item--create {
+  color: var(--accent);
+}
+
 /* ─── Geocoding spinner ──────────────────────────────────────── */
 .admin-input-wrap {
   position: relative;

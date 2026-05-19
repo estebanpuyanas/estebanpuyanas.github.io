@@ -1,0 +1,16 @@
+root = "."
+tmp_dir = "bin"
+
+[build]
+  cmd = "go build -o ./bin/api ."
+  bin = "./bin/api"
+  include_ext = ["go"]
+  exclude_dir = ["bin"]
+  delay = 500
+
+[log]
+  time = false
+
+[color]
+  build = "yellow"
+  runner = "green"

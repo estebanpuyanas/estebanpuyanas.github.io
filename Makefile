@@ -1,12 +1,15 @@
-.PHONY: help backend frontend dev build lint vet typecheck format clean
+AIR := $(shell cd backend && go env GOPATH)/bin/air
+
+.PHONY: help backend frontend dev restart build lint vet typecheck format clean
 
 help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Development:"
-	@echo "  backend     Run the backend dev server"
+	@echo "  backend     Run the backend dev server (hot-reload via air)"
 	@echo "  frontend    Run the frontend dev server"
 	@echo "  dev         Run both dev servers"
+	@echo "  restart     Rebuild and restart the running backend"
 	@echo ""
 	@echo "Build:"
 	@echo "  build       Build production-ready deployment"
@@ -23,8 +26,8 @@ help:
 	@echo "  clean       Remove build artifacts"
 
 backend:
-	@echo "Starting backend dev server..."
-	cd backend && go run .
+	@echo "Starting backend dev server (hot-reload)..."
+	cd backend && $(AIR)
 
 frontend:
 	@echo "Starting frontend dev server..."
@@ -34,9 +37,13 @@ dev:
 	@echo "Starting both dev servers..."
 	@make backend & make frontend & wait
 
+restart:
+	@echo "Rebuilding and restarting backend..."
+	cd backend && go build -o ./bin/api . && pkill -f './bin/api' 2>/dev/null || true && ./bin/api &
+
 build:
 	@echo "Building production-ready deployment..."
-	cd backend && go build -o server . && \
+	cd backend && go build -o bin/api . && \
 	cd ../frontend && npm install && npm run build
 
 lint:
@@ -59,5 +66,5 @@ typecheck:
 
 clean:
 	@echo "Cleaning build artifacts..."
-	rm -f backend/server
+	rm -rf backend/bin
 	rm -rf frontend/dist
