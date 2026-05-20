@@ -67,7 +67,9 @@
   font-size: clamp(1.4rem, 3.5vw, 2rem);
   font-weight: 300;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 2;
+  direction: auto;
+  unicode-bidi: plaintext;
 }
 
 .pmodal-country {
