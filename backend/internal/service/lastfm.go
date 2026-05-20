@@ -57,11 +57,6 @@ func (s *LastFMService) GetRecentTracks(limit int) ([]model.Track, error) {
 			}
 		}
 
-		// @attr.nowplaying is "true" (string) when the track is live.
-		if t.Attr != nil && t.Attr.NowPlaying == "true" {
-			track.NowPlaying = true
-		}
-
 		if t.Date != nil {
 			track.PlayedAt = t.Date.Text
 		}

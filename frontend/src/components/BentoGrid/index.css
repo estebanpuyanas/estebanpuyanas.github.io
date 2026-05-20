@@ -108,13 +108,28 @@
 }
 
 /* ─── Music tile ─────────────────────────────────────────────── */
+.bento-music-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
 .bento-music-content {
   display: flex;
   align-items: center;
   gap: 0.85rem;
   padding: 0.7rem 0.9rem;
   flex: 1;
-  min-height: 0;
+  min-width: 0;
+}
+
+.bento-eq-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.9rem 0.5rem 0.5rem;
+  flex: 1;
 }
 
 .bento-music-art-wrap {
@@ -133,26 +148,14 @@
   background: var(--bg-3);
 }
 
-.bento-music-live {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
-  background: var(--bg-2);
-  padding: 1px 5px;
-  pointer-events: none;
-}
 
 .bento-music-info {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  flex: 1;
   min-width: 0;
+  justify-content: center;
 }
 
 .bento-music-last {
@@ -188,52 +191,100 @@
 .bento-eq-bars {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 14px;
-  margin-top: 0.45rem;
+  gap: 6px;
+  width: 100%;
 }
 
 .bento-eq-bar {
-  width: 2px;
+  flex: 1;
   background: var(--accent);
-  border-radius: 1px;
+  border-radius: 3px;
   transform-origin: bottom;
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-eq-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 45% 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
 }
 
 .bento-eq-bar:nth-child(1) {
-  height: 6px;
-  animation: bentoEqBar 0.7s 0s ease-in-out infinite alternate;
+  height: 90px;
+  animation: bentoEqBarA 0.45s 0s ease-in-out infinite,
+             bentoEqBarColor 4s 0s linear infinite;
 }
 .bento-eq-bar:nth-child(2) {
-  height: 12px;
-  animation: bentoEqBar 0.7s 0.1s ease-in-out infinite alternate;
+  height: 150px;
+  animation: bentoEqBarB 0.38s 0.08s ease-in-out infinite,
+             bentoEqBarColor 4s 0.57s linear infinite;
 }
 .bento-eq-bar:nth-child(3) {
-  height: 8px;
-  animation: bentoEqBar 0.7s 0.22s ease-in-out infinite alternate;
+  height: 70px;
+  animation: bentoEqBarC 0.52s 0.15s ease-in-out infinite,
+             bentoEqBarColor 4s 1.14s linear infinite;
 }
 .bento-eq-bar:nth-child(4) {
-  height: 14px;
-  animation: bentoEqBar 0.7s 0.05s ease-in-out infinite alternate;
+  height: 170px;
+  animation: bentoEqBarA 0.41s 0.04s ease-in-out infinite,
+             bentoEqBarColor 4s 1.71s linear infinite;
 }
 .bento-eq-bar:nth-child(5) {
-  height: 10px;
-  animation: bentoEqBar 0.7s 0.17s ease-in-out infinite alternate;
+  height: 115px;
+  animation: bentoEqBarB 0.35s 0.19s ease-in-out infinite,
+             bentoEqBarColor 4s 2.28s linear infinite;
+}
+.bento-eq-bar:nth-child(6) {
+  height: 135px;
+  animation: bentoEqBarC 0.48s 0.11s ease-in-out infinite,
+             bentoEqBarColor 4s 2.85s linear infinite;
+}
+.bento-eq-bar:nth-child(7) {
+  height: 80px;
+  animation: bentoEqBarA 0.43s 0.07s ease-in-out infinite,
+             bentoEqBarColor 4s 3.42s linear infinite;
 }
 
-@keyframes bentoEqBar {
-  from {
-    transform: scaleY(0.2);
-  }
-  to {
-    transform: scaleY(1);
-  }
+@keyframes bentoEqBarA {
+  0%   { transform: scaleY(0.15); }
+  35%  { transform: scaleY(1);    }
+  65%  { transform: scaleY(0.55); }
+  100% { transform: scaleY(0.8);  }
+}
+@keyframes bentoEqBarB {
+  0%   { transform: scaleY(0.4);  }
+  20%  { transform: scaleY(0.9);  }
+  55%  { transform: scaleY(0.1);  }
+  100% { transform: scaleY(0.75); }
+}
+@keyframes bentoEqBarC {
+  0%   { transform: scaleY(0.7);  }
+  40%  { transform: scaleY(0.2);  }
+  75%  { transform: scaleY(1);    }
+  100% { transform: scaleY(0.45); }
 }
 
-.bento-eq-bars--paused .bento-eq-bar {
-  animation: none;
-  transform: scaleY(0.35);
-  opacity: 0.35;
+@keyframes bentoEqBarColor {
+  0%     { background: #c0a36e; }
+  16.6%  { background: #7fb4ca; }
+  33.3%  { background: #98bb6c; }
+  50%    { background: #e46876; }
+  66.6%  { background: #957fb8; }
+  83.3%  { background: #6a9589; }
+  100%   { background: #c0a36e; }
+}
+
+.bento-music:hover .bento-eq-bars .bento-eq-bar {
+  animation-duration: 0.2s, 4s;
 }
 
 /* ─── Recommendation form ─────────────────────────────────────── */

@@ -215,34 +215,13 @@ func buildMusicPage(tracks []model.Track) string {
 	sb.WriteString(hr(82))
 	sb.WriteString("\n")
 
-	// Show now-playing first if present
-	for _, t := range tracks {
-		if t.NowPlaying {
-			sb.WriteString(fmt.Sprintf("  %s▶ NOW PLAYING%s\n", ansiGold, ansiReset))
-			sb.WriteString(fmt.Sprintf("    %s%s%s\n", ansiCream, t.Name, ansiReset))
-			sb.WriteString(fmt.Sprintf("    %s%s%s", ansiDim, t.Artist, ansiReset))
-			if t.Album != "" {
-				sb.WriteString(fmt.Sprintf(" %s·%s %s%s%s", ansiGray, ansiReset, ansiDim, t.Album, ansiReset))
-			}
-			sb.WriteString("\n\n")
-			sb.WriteString(hr(82))
-			sb.WriteString("\n")
-			break
-		}
-	}
-
-	n := 1
-	for _, t := range tracks {
-		if t.NowPlaying {
-			continue
-		}
-		sb.WriteString(fmt.Sprintf("  %s%2d.%s  %s%s%s\n", ansiGray, n, ansiReset, ansiDim, t.Name, ansiReset))
+	for n, t := range tracks {
+		sb.WriteString(fmt.Sprintf("  %s%2d.%s  %s%s%s\n", ansiGray, n+1, ansiReset, ansiDim, t.Name, ansiReset))
 		sb.WriteString(fmt.Sprintf("       %s%s%s", ansiGray, t.Artist, ansiReset))
 		if t.Album != "" {
 			sb.WriteString(fmt.Sprintf(" %s·%s %s%s%s", ansiGray, ansiReset, ansiGray, t.Album, ansiReset))
 		}
 		sb.WriteString("\n\n")
-		n++
 	}
 
 	return sb.String()

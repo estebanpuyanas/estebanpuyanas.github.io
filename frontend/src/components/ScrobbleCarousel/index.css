@@ -170,49 +170,6 @@
   margin-bottom: 1.25rem;
 }
 
-/* ─── Live badge ─────────────────────────────────────────────── */
-.scrobble-rec {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  background: var(--bg-2);
-  border: 1px solid var(--color-error);
-  border-radius: 3px;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  color: var(--color-error);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  pointer-events: none;
-  user-select: none;
-}
-
-.scrobble-rec::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-error);
-  flex-shrink: 0;
-  animation: recPulse 1.2s ease-in-out infinite;
-}
-
-@keyframes recPulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(195, 64, 67, 0.5);
-  }
-  50% {
-    opacity: 0.5;
-    box-shadow: 0 0 0 5px rgba(195, 64, 67, 0);
-  }
-}
-
 /* ─── Shared text (current track) ────────────────────────────── */
 .scrobble-name {
   font-family: var(--font-display);
