@@ -89,11 +89,11 @@ func hr(n int) string {
 
 func buildIndexPage(host string) string {
 	// About box dimensions:
-	//   inner (visual content width) = 80
-	//   outer (with │ borders)       = 82
-	//   top:    ┌─ about  (9) + ─×72 + ┐ = 82
-	//   bottom: └ + ─×80 + ┘           = 82
-	const aboutInner = 80
+	//   inner (visual content width) = 65
+	//   outer (with │ borders)       = 67
+	//   top:    ┌─ about  (9) + ─×57 + ┐ = 67
+	//   bottom: └ + ─×65 + ┘           = 67
+	const aboutInner = 65
 
 	// Links box dimensions:
 	//   left inner  = 22, right inner = 36
@@ -113,17 +113,17 @@ func buildIndexPage(host string) string {
 	sb.WriteString(fmt.Sprintf("  %s██╔════╝ ██╔══██╗%s      %sEsteban Puyana%s\n", ansiBlue, ansiReset, ansiCream, ansiReset))
 	sb.WriteString(fmt.Sprintf("  %s█████╗   ██████╔╝%s      %saspiring software engineer%s\n", ansiBlue, ansiReset, ansiDim, ansiReset))
 	sb.WriteString(fmt.Sprintf("  %s██╔══╝   ██╔═══╝ %s      %sCS + Philosophy · Northeastern University%s\n", ansiBlue, ansiReset, ansiGray, ansiReset))
-	sb.WriteString(fmt.Sprintf("  %s███████╗ ██║      %s     %sBoston, MA%s\n", ansiBlue, ansiReset, ansiGray, ansiReset))
+	sb.WriteString(fmt.Sprintf("  %s███████╗ ██║      %s      %sBoston, MA%s\n", ansiBlue, ansiReset, ansiGray, ansiReset))
 	sb.WriteString(fmt.Sprintf("  %s╚══════╝ ╚═╝%s\n", ansiBlue, ansiReset))
 	sb.WriteString("\n")
-	sb.WriteString(hr(82))
+	sb.WriteString(hr(69))
 	sb.WriteString("\n")
 
 	// ── About box ─────────────────────────────────────────────────────────────
 	// top: ┌─ (2) + space (1) + about (5) + space (1) + ─×57 (57) + ┐ (1) = 67 (outer)
 	sb.WriteString(fmt.Sprintf("  %s┌─ %s%sabout%s%s┐%s\n",
 		ansiGray, ansiReset, ansiCream, ansiReset,
-		ansiGray+" "+strings.Repeat("─", 72), ansiReset))
+		ansiGray+" "+strings.Repeat("─", 57), ansiReset))
 
 	aboutLine := func(content string) {
 		sb.WriteString(fmt.Sprintf("  %s│%s%s%s│%s\n",
@@ -183,7 +183,7 @@ func buildIndexPage(host string) string {
 		strings.Repeat("─", rightInner),
 		ansiReset))
 	sb.WriteString("\n")
-	sb.WriteString(hr(82))
+	sb.WriteString(hr(69))
 	sb.WriteString("\n")
 
 	// ── Commands ──────────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ func buildMusicPage(tracks []model.Track) string {
 	sb.WriteString(fmt.Sprintf("  %srecent scrobbles%s  ·  %slast.fm/user/estebanpuyanas%s\n",
 		ansiCream, ansiReset, ansiCyan, ansiReset))
 	sb.WriteString("\n")
-	sb.WriteString(hr(82))
+	sb.WriteString(hr(69))
 	sb.WriteString("\n")
 
 	// Show now-playing first if present
@@ -225,7 +225,7 @@ func buildMusicPage(tracks []model.Track) string {
 				sb.WriteString(fmt.Sprintf(" %s·%s %s%s%s", ansiGray, ansiReset, ansiDim, t.Album, ansiReset))
 			}
 			sb.WriteString("\n\n")
-			sb.WriteString(hr(82))
+			sb.WriteString(hr(69))
 			sb.WriteString("\n")
 			break
 		}
@@ -255,7 +255,7 @@ func buildTravelsPage(pins []model.TravelPin) string {
 	sb.WriteString(fmt.Sprintf("  %stravel pins%s  ·  %s%d places%s\n",
 		ansiCream, ansiReset, ansiDim, len(pins), ansiReset))
 	sb.WriteString("\n")
-	sb.WriteString(hr(82))
+	sb.WriteString(hr(69))
 	sb.WriteString("\n")
 
 	for _, p := range pins {
