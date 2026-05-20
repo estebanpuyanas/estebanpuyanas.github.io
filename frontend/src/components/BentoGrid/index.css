@@ -200,6 +200,22 @@
   background: var(--accent);
   border-radius: 3px;
   transform-origin: bottom;
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-eq-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 45% 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.08) 60%,
+    transparent 100%
+  );
+  border-radius: 3px 3px 0 0;
+  pointer-events: none;
 }
 
 .bento-eq-bar:nth-child(1) {
