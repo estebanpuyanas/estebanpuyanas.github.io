@@ -108,13 +108,28 @@
 }
 
 /* ─── Music tile ─────────────────────────────────────────────── */
+.bento-music-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
 .bento-music-content {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 0.85rem;
   padding: 0.7rem 0.9rem;
   flex: 1;
-  min-height: 0;
+  min-width: 0;
+}
+
+.bento-eq-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.9rem 0.5rem 0;
+  flex-shrink: 0;
 }
 
 .bento-music-art-wrap {
@@ -176,51 +191,48 @@
 .bento-eq-bars {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
-  align-self: stretch;
-  padding-block: 0.5rem;
-  flex-shrink: 0;
+  gap: 5px;
 }
 
 .bento-eq-bar {
-  width: 5px;
+  width: 6px;
   background: var(--accent);
   border-radius: 3px;
   transform-origin: bottom;
 }
 
 .bento-eq-bar:nth-child(1) {
-  height: 62px;
+  height: 90px;
   animation: bentoEqBarA 0.45s 0s ease-in-out infinite,
              bentoEqBarColor 4s 0s linear infinite;
 }
 .bento-eq-bar:nth-child(2) {
-  height: 105px;
+  height: 150px;
   animation: bentoEqBarB 0.38s 0.08s ease-in-out infinite,
              bentoEqBarColor 4s 0.57s linear infinite;
 }
 .bento-eq-bar:nth-child(3) {
-  height: 50px;
+  height: 70px;
   animation: bentoEqBarC 0.52s 0.15s ease-in-out infinite,
              bentoEqBarColor 4s 1.14s linear infinite;
 }
 .bento-eq-bar:nth-child(4) {
-  height: 118px;
+  height: 170px;
   animation: bentoEqBarA 0.41s 0.04s ease-in-out infinite,
              bentoEqBarColor 4s 1.71s linear infinite;
 }
 .bento-eq-bar:nth-child(5) {
-  height: 80px;
+  height: 115px;
   animation: bentoEqBarB 0.35s 0.19s ease-in-out infinite,
              bentoEqBarColor 4s 2.28s linear infinite;
 }
 .bento-eq-bar:nth-child(6) {
-  height: 95px;
+  height: 135px;
   animation: bentoEqBarC 0.48s 0.11s ease-in-out infinite,
              bentoEqBarColor 4s 2.85s linear infinite;
 }
 .bento-eq-bar:nth-child(7) {
-  height: 58px;
+  height: 80px;
   animation: bentoEqBarA 0.43s 0.07s ease-in-out infinite,
              bentoEqBarColor 4s 3.42s linear infinite;
 }

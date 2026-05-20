@@ -52,29 +52,33 @@ export default function MusicTile() {
       )}
 
       {!loading && track && (
-        <div className="bento-music-content">
-          <div className="bento-music-art-wrap">
-            <img
-              className="bento-music-art"
-              src={track.imageUrl || FALLBACK_ART}
-              alt={track.album}
-            />
+        <div className="bento-music-main">
+          <div className="bento-music-content">
+            <div className="bento-music-art-wrap">
+              <img
+                className="bento-music-art"
+                src={track.imageUrl || FALLBACK_ART}
+                alt={track.album}
+              />
+            </div>
+            <div className="bento-music-info">
+              <span className="bento-music-last">last scrobbled</span>
+              <p className="bento-music-name">{track.name}</p>
+              <p className="bento-music-meta">
+                {track.artist} · {track.album}
+              </p>
+            </div>
           </div>
-          <div className="bento-music-info">
-            <span className="bento-music-last">last scrobbled</span>
-            <p className="bento-music-name">{track.name}</p>
-            <p className="bento-music-meta">
-              {track.artist} · {track.album}
-            </p>
-          </div>
-          <div className="bento-eq-bars">
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
-            <span className="bento-eq-bar" />
+          <div className="bento-eq-panel">
+            <div className="bento-eq-bars">
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+              <span className="bento-eq-bar" />
+            </div>
           </div>
         </div>
       )}
