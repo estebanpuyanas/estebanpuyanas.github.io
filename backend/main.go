@@ -52,7 +52,12 @@ func main() {
 	travelPinSvc := service.NewTravelPinService(database, cloudinarySvc)
 	travelPinHandler := handler.NewTravelPinHandler(travelPinSvc)
 
+	curlHandler := handler.NewCurlHandler(lastfmSvc, travelPinSvc)
+
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /curl", curlHandler.Index)
+	mux.HandleFunc("GET /curl/music", curlHandler.Music)
+	mux.HandleFunc("GET /curl/travels", curlHandler.Travels)
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
 	mux.HandleFunc("/api/travel/pins", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
