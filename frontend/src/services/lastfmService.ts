@@ -5,7 +5,6 @@ export interface Track {
   artist: string;
   album: string;
   imageUrl: string;
-  nowPlaying: boolean;
   playedAt: string;
 }
 

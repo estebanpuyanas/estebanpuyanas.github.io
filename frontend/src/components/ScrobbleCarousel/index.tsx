@@ -128,20 +128,15 @@ export default function ScrobbleCarousel({
 
         <div className="scrobble-divider" aria-hidden="true" />
 
-        {/* ── Currently playing (right) ── */}
+        {/* ── Last scrobbled (right) ── */}
         <div className="scrobble-current">
-          <p className="scrobble-section-label">currently playing:</p>
+          <p className="scrobble-section-label">last scrobbled:</p>
           <div className="scrobble-current-art-wrap">
             <img
               className="scrobble-current-img"
               src={current.imageUrl || FALLBACK_IMG}
               alt={`${current.album} album art`}
             />
-            {current.nowPlaying && (
-              <span className="scrobble-rec" aria-label="live now">
-                live
-              </span>
-            )}
           </div>
           <div className="scrobble-current-info">
             <p className="scrobble-name">{current.name}</p>

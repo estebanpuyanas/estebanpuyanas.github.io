@@ -13,3 +13,5 @@
 
 # Fullstack
 - [ ] Implement search bar in travels page.
+- [ ] GitHub projects page.
+

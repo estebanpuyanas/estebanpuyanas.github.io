@@ -59,25 +59,22 @@ export default function MusicTile() {
               src={track.imageUrl || FALLBACK_ART}
               alt={track.album}
             />
-            {track.nowPlaying && <span className="bento-music-live">live</span>}
           </div>
           <div className="bento-music-info">
-            {!track.nowPlaying && (
-              <span className="bento-music-last">last played</span>
-            )}
+            <span className="bento-music-last">last scrobbled</span>
             <p className="bento-music-name">{track.name}</p>
             <p className="bento-music-meta">
               {track.artist} · {track.album}
             </p>
-            <div
-              className={`bento-eq-bars${track.nowPlaying ? "" : " bento-eq-bars--paused"}`}
-            >
-              <span className="bento-eq-bar" />
-              <span className="bento-eq-bar" />
-              <span className="bento-eq-bar" />
-              <span className="bento-eq-bar" />
-              <span className="bento-eq-bar" />
-            </div>
+          </div>
+          <div className="bento-eq-bars">
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
+            <span className="bento-eq-bar" />
           </div>
         </div>
       )}
