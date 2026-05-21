@@ -85,6 +85,21 @@ func (s *CloudinaryService) UploadImage(ctx context.Context, file io.Reader, fol
 	}, nil
 }
 
+// RenameImage moves an asset to a new public_id (effectively changing its folder).
+// Cloudinary creates the destination folder automatically if it doesn't exist.
+// Returns the new secure URL derived from the cloud name and new public_id.
+func (s *CloudinaryService) RenameImage(ctx context.Context, fromPublicID, toPublicID string) (string, error) {
+	_, err := s.client.Upload.Rename(ctx, uploader.RenameParams{
+		FromPublicID: fromPublicID,
+		ToPublicID:   toPublicID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("rename: %w", err)
+	}
+	newURL := "https://res.cloudinary.com/" + s.cloudName + "/image/upload/" + toPublicID
+	return newURL, nil
+}
+
 func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) error {
 	resp, err := s.client.Upload.Destroy(ctx, uploader.DestroyParams{PublicID: publicID})
 	if err != nil {

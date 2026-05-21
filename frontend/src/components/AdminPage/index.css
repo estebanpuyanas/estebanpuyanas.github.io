@@ -475,6 +475,39 @@
   justify-content: flex-end;
 }
 
+/* ─── Folder editing ─────────────────────────────────────────── */
+.admin-folder-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-3);
+  border-radius: 3px;
+}
+
+.admin-folder-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.admin-folder-info .admin-coord-val {
+  word-break: break-all;
+}
+
+.admin-folder-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.admin-folder-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .admin-body {

@@ -13,6 +13,7 @@ export interface Pin {
   country: string;
   latitude: number;
   longitude: number;
+  cloudinaryFolder?: string;
   images: PinImage[];
 }
 
@@ -118,6 +119,23 @@ export async function getCloudinaryFolders(token: string): Promise<string[]> {
   if (res.status === 401) throw new Error("unauthorized");
   if (!res.ok) throw new Error(`Failed to fetch folders: ${res.status}`);
   return res.json();
+}
+
+export async function updatePinFolder(
+  pinId: string,
+  cloudinaryFolder: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/folder`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ cloudinaryFolder }),
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to update folder: ${res.status}`);
 }
 
 export async function createPin(

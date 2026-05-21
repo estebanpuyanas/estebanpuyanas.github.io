@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -24,7 +25,7 @@ func NewTravelPinService(db *sql.DB, cld *cloudinary.CloudinaryService) *TravelP
 
 func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, location_name, country, latitude, longitude
+		SELECT id, location_name, country, latitude, longitude, cloudinary_folder
 		FROM travel_pins
 		ORDER BY created_at DESC`)
 	if err != nil {
@@ -35,7 +36,7 @@ func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, e
 	pins := []model.TravelPin{}
 	for rows.Next() {
 		var p model.TravelPin
-		if err := rows.Scan(&p.ID, &p.LocationName, &p.Country, &p.Latitude, &p.Longitude); err != nil {
+		if err := rows.Scan(&p.ID, &p.LocationName, &p.Country, &p.Latitude, &p.Longitude, &p.CloudinaryFolder); err != nil {
 			return nil, fmt.Errorf("scan pin: %w", err)
 		}
 		p.Images = []model.Image{}
@@ -234,6 +235,63 @@ func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int
 			pubID, pinID)
 	}
 	return len(stale), nil
+}
+
+// MoveFolder renames each image's Cloudinary public_id to the new folder path,
+// updates the DB records, then updates the pin's cloudinary_folder column.
+// Cloudinary creates the destination folder automatically on first rename.
+func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder string) error {
+	var oldFolder string
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, pinID).Scan(&oldFolder)
+	if err == sql.ErrNoRows {
+		return fmt.Errorf("pin not found")
+	}
+	if err != nil {
+		return fmt.Errorf("query pin: %w", err)
+	}
+	if oldFolder == newFolder {
+		return nil
+	}
+
+	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
+	if err != nil {
+		return fmt.Errorf("query images: %w", err)
+	}
+	var publicIDs []string
+	for rows.Next() {
+		var pid string
+		if err := rows.Scan(&pid); err != nil {
+			continue
+		}
+		publicIDs = append(publicIDs, pid)
+	}
+	rows.Close()
+
+	if s.cloudinary != nil {
+		for _, oldID := range publicIDs {
+			filename := strings.TrimPrefix(oldID, oldFolder+"/")
+			if filename == oldID {
+				// public_id doesn't carry the expected prefix — use the last path segment
+				parts := strings.Split(oldID, "/")
+				filename = parts[len(parts)-1]
+			}
+			newID := newFolder + "/" + filename
+
+			newURL, err := s.cloudinary.RenameImage(ctx, oldID, newID)
+			if err != nil {
+				return fmt.Errorf("rename %s: %w", oldID, err)
+			}
+			_, err = s.db.ExecContext(ctx,
+				`UPDATE pin_images SET public_id = ?, secure_url = ? WHERE public_id = ? AND pin_id = ?`,
+				newID, newURL, oldID, pinID)
+			if err != nil {
+				return fmt.Errorf("update image record: %w", err)
+			}
+		}
+	}
+
+	_, err = s.db.ExecContext(ctx, `UPDATE travel_pins SET cloudinary_folder = ? WHERE id = ?`, newFolder, pinID)
+	return err
 }
 
 func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {
