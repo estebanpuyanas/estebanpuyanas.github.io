@@ -148,7 +148,6 @@
   background: var(--bg-3);
 }
 
-
 .bento-music-info {
   display: flex;
   flex-direction: column;
@@ -205,7 +204,7 @@
 }
 
 .bento-eq-bar::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0 0 45% 0;
   background: linear-gradient(
@@ -220,67 +219,112 @@
 
 .bento-eq-bar:nth-child(1) {
   height: 90px;
-  animation: bentoEqBarA 0.45s 0s ease-in-out infinite,
-             bentoEqBarColor 4s 0s linear infinite;
+  animation:
+    bentoEqBarA 0.45s 0s ease-in-out infinite,
+    bentoEqBarColor 4s 0s linear infinite;
 }
 .bento-eq-bar:nth-child(2) {
   height: 150px;
-  animation: bentoEqBarB 0.38s 0.08s ease-in-out infinite,
-             bentoEqBarColor 4s 0.57s linear infinite;
+  animation:
+    bentoEqBarB 0.38s 0.08s ease-in-out infinite,
+    bentoEqBarColor 4s 0.57s linear infinite;
 }
 .bento-eq-bar:nth-child(3) {
   height: 70px;
-  animation: bentoEqBarC 0.52s 0.15s ease-in-out infinite,
-             bentoEqBarColor 4s 1.14s linear infinite;
+  animation:
+    bentoEqBarC 0.52s 0.15s ease-in-out infinite,
+    bentoEqBarColor 4s 1.14s linear infinite;
 }
 .bento-eq-bar:nth-child(4) {
   height: 170px;
-  animation: bentoEqBarA 0.41s 0.04s ease-in-out infinite,
-             bentoEqBarColor 4s 1.71s linear infinite;
+  animation:
+    bentoEqBarA 0.41s 0.04s ease-in-out infinite,
+    bentoEqBarColor 4s 1.71s linear infinite;
 }
 .bento-eq-bar:nth-child(5) {
   height: 115px;
-  animation: bentoEqBarB 0.35s 0.19s ease-in-out infinite,
-             bentoEqBarColor 4s 2.28s linear infinite;
+  animation:
+    bentoEqBarB 0.35s 0.19s ease-in-out infinite,
+    bentoEqBarColor 4s 2.28s linear infinite;
 }
 .bento-eq-bar:nth-child(6) {
   height: 135px;
-  animation: bentoEqBarC 0.48s 0.11s ease-in-out infinite,
-             bentoEqBarColor 4s 2.85s linear infinite;
+  animation:
+    bentoEqBarC 0.48s 0.11s ease-in-out infinite,
+    bentoEqBarColor 4s 2.85s linear infinite;
 }
 .bento-eq-bar:nth-child(7) {
   height: 80px;
-  animation: bentoEqBarA 0.43s 0.07s ease-in-out infinite,
-             bentoEqBarColor 4s 3.42s linear infinite;
+  animation:
+    bentoEqBarA 0.43s 0.07s ease-in-out infinite,
+    bentoEqBarColor 4s 3.42s linear infinite;
 }
 
 @keyframes bentoEqBarA {
-  0%   { transform: scaleY(0.15); }
-  35%  { transform: scaleY(1);    }
-  65%  { transform: scaleY(0.55); }
-  100% { transform: scaleY(0.8);  }
+  0% {
+    transform: scaleY(0.15);
+  }
+  35% {
+    transform: scaleY(1);
+  }
+  65% {
+    transform: scaleY(0.55);
+  }
+  100% {
+    transform: scaleY(0.8);
+  }
 }
 @keyframes bentoEqBarB {
-  0%   { transform: scaleY(0.4);  }
-  20%  { transform: scaleY(0.9);  }
-  55%  { transform: scaleY(0.1);  }
-  100% { transform: scaleY(0.75); }
+  0% {
+    transform: scaleY(0.4);
+  }
+  20% {
+    transform: scaleY(0.9);
+  }
+  55% {
+    transform: scaleY(0.1);
+  }
+  100% {
+    transform: scaleY(0.75);
+  }
 }
 @keyframes bentoEqBarC {
-  0%   { transform: scaleY(0.7);  }
-  40%  { transform: scaleY(0.2);  }
-  75%  { transform: scaleY(1);    }
-  100% { transform: scaleY(0.45); }
+  0% {
+    transform: scaleY(0.7);
+  }
+  40% {
+    transform: scaleY(0.2);
+  }
+  75% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0.45);
+  }
 }
 
 @keyframes bentoEqBarColor {
-  0%     { background: #c0a36e; }
-  16.6%  { background: #7fb4ca; }
-  33.3%  { background: #98bb6c; }
-  50%    { background: #e46876; }
-  66.6%  { background: #957fb8; }
-  83.3%  { background: #6a9589; }
-  100%   { background: #c0a36e; }
+  0% {
+    background: #c0a36e;
+  }
+  16.6% {
+    background: #7fb4ca;
+  }
+  33.3% {
+    background: #98bb6c;
+  }
+  50% {
+    background: #e46876;
+  }
+  66.6% {
+    background: #957fb8;
+  }
+  83.3% {
+    background: #6a9589;
+  }
+  100% {
+    background: #c0a36e;
+  }
 }
 
 .bento-music:hover .bento-eq-bars .bento-eq-bar {

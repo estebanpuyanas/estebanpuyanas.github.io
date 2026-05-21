@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -9,6 +9,8 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import type { Map as LeafletMap } from "leaflet";
+import { getCountryFlag } from "../../utils/countryFlag";
+import { countries as allCountries } from "countries-list";
 
 import "leaflet/dist/leaflet.css";
 import "./index.css";
@@ -42,6 +44,7 @@ const PENDING_PIN_ICON = L.divIcon({
 export interface TravelMarker {
   id: string;
   label: string;
+  country?: string;
   lat: number;
   lng: number;
   photos: string[];
@@ -140,10 +143,30 @@ export default function TravelsMap({
   const suppressMapClick = useRef(false);
   const [fullscreen, setFs] = useState(false);
 
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const fn = () => setFs(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", fn);
     return () => document.removeEventListener("fullscreenchange", fn);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        inputRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      )
+        return;
+      setOpen(false);
+      setHighlightIdx(-1);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const toggleFs = useCallback(async () => {
@@ -151,6 +174,64 @@ export default function TravelsMap({
       await outerRef.current?.requestFullscreen();
     else await document.exitFullscreen();
   }, []);
+
+  const countryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    markers.forEach((m) => {
+      if (m.country) map.set(m.country, (map.get(m.country) ?? 0) + 1);
+    });
+    return map;
+  }, [markers]);
+
+  const results = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return Object.values(allCountries)
+      .map((c) => c.name)
+      .filter((name) => name.toLowerCase().includes(q))
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => [name, countryCounts.get(name) ?? 0] as [string, number]);
+  }, [countryCounts, query]);
+
+  const handleSelect = useCallback(
+    (country: string) => {
+      const pts = markers.filter((m) => m.country === country);
+      if (pts.length > 0 && mapRef.current) {
+        const bounds = L.latLngBounds(pts.map((m) => [m.lat, m.lng]));
+        mapRef.current.flyToBounds(bounds.pad(0.3), { maxZoom: 8 });
+      }
+      // no pins for this country — nothing to fly to
+      setQuery("");
+      setOpen(false);
+      setHighlightIdx(-1);
+    },
+    [markers],
+  );
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      setHighlightIdx(-1);
+      return;
+    }
+    if (!open || results.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightIdx((i) => Math.min(i + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const idx = highlightIdx >= 0 ? highlightIdx : 0;
+      if (results[idx]) handleSelect(results[idx][0]);
+    }
+  };
+
+  const counterText =
+    markers.length === 0
+      ? "no places logged yet"
+      : `${markers.length} place${markers.length === 1 ? "" : "s"} logged`;
 
   return (
     <div
@@ -160,11 +241,24 @@ export default function TravelsMap({
       <div className="tmap-header">
         <div className="tmap-header-left">
           {label && <span className="tmap-label">{label}</span>}
-          <span className="tmap-counter">
-            {markers.length === 0
-              ? "no places logged yet"
-              : `${markers.length} place${markers.length === 1 ? "" : "s"} logged`}
-          </span>
+          <input
+            ref={inputRef}
+            className="tmap-search-input"
+            value={query}
+            placeholder={counterText}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+              setHighlightIdx(-1);
+            }}
+            onFocus={() => {
+              if (query.trim()) setOpen(true);
+            }}
+            onKeyDown={handleKeyDown}
+            aria-label="Search by country"
+            autoComplete="off"
+            spellCheck={false}
+          />
         </div>
         <div className="tmap-controls">
           <button
@@ -246,6 +340,36 @@ export default function TravelsMap({
           </Marker>
         )}
       </MapContainer>
+
+      {open && (
+        <div ref={dropdownRef} className="tmap-dropdown">
+          {results.length === 0 ? (
+            <div className="tmap-dropdown-empty">no countries found</div>
+          ) : (
+            results.map(([country, count], i) => (
+              <button
+                key={country}
+                className={`tmap-dropdown-item${i === highlightIdx ? " tmap-dropdown-item--hi" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect(country);
+                }}
+                onMouseEnter={() => setHighlightIdx(i)}
+              >
+                <span className="tmap-dropdown-flag">
+                  {getCountryFlag(country)}
+                </span>
+                <span className="tmap-dropdown-name">{country}</span>
+                <span className="tmap-dropdown-count">
+                  {count > 0
+                    ? `${count} place${count === 1 ? "" : "s"} logged`
+                    : "no places logged :("}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

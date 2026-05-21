@@ -13,6 +13,7 @@ export default function TravelsPage() {
   const markers: TravelMarker[] = pins.map((p) => ({
     id: p.id,
     label: p.locationName,
+    country: p.country,
     lat: p.latitude,
     lng: p.longitude,
     photos: [],

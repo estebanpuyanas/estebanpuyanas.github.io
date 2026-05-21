@@ -2,7 +2,7 @@
 .tmap-outer {
   /* Horizontal margin lets users scroll past the map without accidentally zooming it */
   margin: 10px 14px;
-  overflow: hidden;
+  position: relative;
 }
 
 .tmap-outer--fs,
@@ -42,12 +42,107 @@
   color: var(--accent);
 }
 
-.tmap-counter {
+/* ─── Search input (replaces counter) ───────────────────────── */
+.tmap-search-input {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  outline: none;
   font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-3);
+  cursor: text;
+  padding: 3px 8px;
+  min-width: 180px;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.tmap-search-input::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.tmap-search-input:focus {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.tmap-search-input:focus::placeholder {
+  opacity: 0.4;
+}
+
+/* ─── Country dropdown ───────────────────────────────────────── */
+.tmap-dropdown {
+  position: absolute;
+  top: 41px;
+  left: 0.75rem;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-top: none;
+  z-index: 9999;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.tmap-dropdown-empty {
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.tmap-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.tmap-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.tmap-dropdown-item:hover,
+.tmap-dropdown-item--hi {
+  background: var(--bg-3);
+}
+
+.tmap-dropdown-flag {
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tmap-dropdown-name {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  flex: 1;
+}
+
+.tmap-dropdown-count {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
 }
 
 /* ─── Controls ───────────────────────────────────────────────── */

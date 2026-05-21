@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 1rem;
   animation: pmodalFadeIn 0.18s ease;
 }
 
@@ -27,8 +27,9 @@
   background: var(--bg-2);
   border: 1px solid var(--border);
   width: 100%;
-  max-width: 780px;
-  max-height: 90vh;
+  max-width: min(96vw, 1600px);
+  height: 92vh;
+  max-height: 92vh;
   display: flex;
   flex-direction: column;
   animation: pmodalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,7 +68,9 @@
   font-size: clamp(1.4rem, 3.5vw, 2rem);
   font-weight: 300;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 2;
+  direction: auto;
+  unicode-bidi: plaintext;
 }
 
 .pmodal-country {
@@ -150,7 +153,7 @@
 .pmodal-img {
   display: block;
   max-width: 100%;
-  max-height: 55vh;
+  max-height: 70vh;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -271,6 +274,7 @@
   }
 
   .pmodal-card {
+    height: 92vh;
     max-height: 92vh;
     border-left: none;
     border-right: none;
@@ -278,6 +282,6 @@
   }
 
   .pmodal-img {
-    max-height: 45vh;
+    max-height: 55vh;
   }
 }

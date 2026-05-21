@@ -95,4 +95,3 @@ func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) er
 	}
 	return nil
 }
-
