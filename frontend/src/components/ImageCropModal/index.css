@@ -1,0 +1,121 @@
+.icrop-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.icrop-modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.icrop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ─── Crop canvas ────────────────────────────────────────────── */
+.icrop-canvas {
+  position: relative;
+  height: 380px;
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+}
+
+/* ─── Controls ───────────────────────────────────────────────── */
+.icrop-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.icrop-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.icrop-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  width: 3.5rem;
+  flex-shrink: 0;
+}
+
+.icrop-val {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-2);
+  width: 3rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.icrop-slider {
+  flex: 1;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 2px;
+}
+
+.icrop-pills {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.icrop-pill {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-3);
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.icrop-pill:hover {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.icrop-pill--on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.icrop-pill--on:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-light);
+  color: var(--bg);
+}
+
+/* ─── Actions ────────────────────────────────────────────────── */
+.icrop-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}

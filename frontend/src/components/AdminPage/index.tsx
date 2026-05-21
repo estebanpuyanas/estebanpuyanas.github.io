@@ -16,6 +16,7 @@ import {
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
 import { reverseGeocode } from "../../utils/nominatim";
+import ImageCropModal from "../ImageCropModal";
 import "./index.css";
 
 const TOKEN_KEY = "ep-admin-token";
@@ -132,6 +133,7 @@ export default function AdminPage() {
   const [deletingImage, setDeletingImage] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -277,13 +279,20 @@ export default function AdminPage() {
   };
 
   // ── Image upload ──────────────────────────────────────────────
-  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || panel.mode !== "editing") return;
     e.target.value = "";
+    setCropFile(file);
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    if (panel.mode !== "editing" || !cropFile) return;
+    setCropFile(null);
     setUploadingImage(true);
     setSubmitError("");
     try {
+      const file = new File([blob], cropFile.name, { type: blob.type });
       const img = await uploadPinImage(panel.pin.id, file, token);
       setPinImages((prev) => [img, ...prev]);
     } catch (err) {
@@ -728,6 +737,14 @@ export default function AdminPage() {
         </div>
         <div className="admin-side">{renderPanel()}</div>
       </div>
+
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
 
       {editingImage && (
         <div
