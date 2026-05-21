@@ -145,6 +145,63 @@
   white-space: nowrap;
 }
 
+/* ─── Location search (admin only) ──────────────────────────── */
+.tmap-loc-input {
+  background: var(--bg);
+  border: 1px solid var(--border-light);
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  cursor: text;
+  padding: 3px 8px;
+  width: 160px;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    width 0.2s ease;
+}
+
+.tmap-loc-input::placeholder {
+  color: var(--text-3);
+  opacity: 1;
+}
+
+.tmap-loc-input:focus {
+  border-color: var(--accent);
+  color: var(--text);
+  width: 220px;
+}
+
+.tmap-loc-input:focus::placeholder {
+  opacity: 0.4;
+}
+
+.tmap-loc-dropdown {
+  position: absolute;
+  top: 41px;
+  right: 0.75rem;
+  min-width: 320px;
+  max-width: 480px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-top: none;
+  z-index: 9999;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.tmap-loc-result-name {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-align: left;
+  line-height: 1.4;
+}
+
 /* ─── Controls ───────────────────────────────────────────────── */
 .tmap-controls {
   display: flex;

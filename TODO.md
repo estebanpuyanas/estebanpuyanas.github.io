@@ -20,7 +20,7 @@
  - [ ] Get good at railway deployments or find a better alternative.
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
  - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
+ - [ ] Make album for Franchonia Notch.
 
 # Fullstack
-- [ ] Implement search bar in travels page.
 - [ ] GitHub projects page.

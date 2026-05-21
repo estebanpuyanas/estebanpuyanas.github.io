@@ -15,6 +15,7 @@ import {
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
+import { reverseGeocode } from "../../utils/nominatim";
 import "./index.css";
 
 const TOKEN_KEY = "ep-admin-token";
@@ -72,32 +73,6 @@ function clearToken() {
     // eslint-disable-next-line no-console
     if (import.meta.env.DEV)
       console.warn("[AdminPage] localStorage delete failed");
-  }
-}
-
-async function reverseGeocode(lat: number, lng: number) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`,
-      { headers: { "User-Agent": "estebanpuyanas.github.io" } },
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const addr = data.address ?? {};
-    return {
-      locationName:
-        addr.city ??
-        addr.town ??
-        addr.village ??
-        addr.municipality ??
-        addr.county ??
-        "",
-      country: addr.country ?? "",
-    };
-  } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] reverse geocode failed");
-    return null;
   }
 }
 
@@ -745,6 +720,7 @@ export default function AdminPage() {
             markers={markers}
             onMapClick={handleMapClick}
             onMarkerClick={handleMarkerClick}
+            onLocationSelect={handleMapClick}
             pendingPin={
               panel.mode === "new" ? { lat: panel.lat, lng: panel.lng } : null
             }
