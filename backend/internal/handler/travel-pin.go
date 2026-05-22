@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -189,6 +190,7 @@ func (h *TravelPinHandler) UpdatePinFolder(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if err := h.svc.MoveFolder(r.Context(), id, req.CloudinaryFolder); err != nil {
+		log.Printf("MoveFolder error: %v", err)
 		if err.Error() == "pin not found" {
 			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
 		} else {
