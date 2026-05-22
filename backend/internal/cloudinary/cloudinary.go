@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 
 	cld "github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api"
@@ -85,19 +86,26 @@ func (s *CloudinaryService) UploadImage(ctx context.Context, file io.Reader, fol
 	}, nil
 }
 
-// RenameImage moves an asset to a new public_id (effectively changing its folder).
-// Cloudinary creates the destination folder automatically if it doesn't exist.
-// Returns the new secure URL derived from the cloud name and new public_id.
-func (s *CloudinaryService) RenameImage(ctx context.Context, fromPublicID, toPublicID string) (string, error) {
-	_, err := s.client.Upload.Rename(ctx, uploader.RenameParams{
-		FromPublicID: fromPublicID,
-		ToPublicID:   toPublicID,
+// RenameFolder renames an entire Cloudinary folder, moving all assets inside it.
+// This is a write operation on the Admin API (not an asset listing call).
+// Returns nil if the source folder does not exist (nothing to move).
+func (s *CloudinaryService) RenameFolder(ctx context.Context, fromPath, toPath string) error {
+	resp, err := s.client.Admin.RenameFolder(ctx, admin.RenameFolderParams{
+		FromPath: fromPath,
+		ToPath:   toPath,
 	})
 	if err != nil {
-		return "", fmt.Errorf("rename: %w", err)
+		return fmt.Errorf("rename folder: %w", err)
 	}
-	newURL := "https://res.cloudinary.com/" + s.cloudName + "/image/upload/" + toPublicID
-	return newURL, nil
+	if resp.Error.Message != "" {
+		// Treat "not found" as a no-op — folder may not exist yet (pin has no images)
+		if strings.Contains(strings.ToLower(resp.Error.Message), "not found") ||
+			strings.Contains(strings.ToLower(resp.Error.Message), "doesn't exist") {
+			return nil
+		}
+		return fmt.Errorf("rename folder: %s", resp.Error.Message)
+	}
+	return nil
 }
 
 func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) error {

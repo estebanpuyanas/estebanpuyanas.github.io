@@ -237,9 +237,8 @@ func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int
 	return len(stale), nil
 }
 
-// MoveFolder renames each image's Cloudinary public_id to the new folder path,
-// updates the DB records, then updates the pin's cloudinary_folder column.
-// Cloudinary creates the destination folder automatically on first rename.
+// MoveFolder renames the entire Cloudinary folder atomically (including assets
+// not tracked in pin_images), then updates DB records and the pin's folder column.
 func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder string) error {
 	var oldFolder string
 	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, pinID).Scan(&oldFolder)
@@ -253,40 +252,38 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 		return nil
 	}
 
-	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
-	if err != nil {
-		return fmt.Errorf("query images: %w", err)
-	}
-	var publicIDs []string
-	for rows.Next() {
-		var pid string
-		if err := rows.Scan(&pid); err != nil {
-			continue
+	if s.cloudinary != nil && oldFolder != "" {
+		if err := s.cloudinary.RenameFolder(ctx, oldFolder, newFolder); err != nil {
+			return fmt.Errorf("cloudinary rename folder: %w", err)
 		}
-		publicIDs = append(publicIDs, pid)
-	}
-	rows.Close()
 
-	if s.cloudinary != nil {
-		for _, oldID := range publicIDs {
+		// Rewrite DB image records to reflect the moved public_ids.
+		rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
+		if err != nil {
+			return fmt.Errorf("query images: %w", err)
+		}
+		type update struct{ oldID, newID string }
+		var updates []update
+		for rows.Next() {
+			var oldID string
+			if err := rows.Scan(&oldID); err != nil {
+				continue
+			}
 			filename := strings.TrimPrefix(oldID, oldFolder+"/")
 			if filename == oldID {
-				// public_id doesn't carry the expected prefix — use the last path segment
 				parts := strings.Split(oldID, "/")
 				filename = parts[len(parts)-1]
 			}
-			newID := newFolder + "/" + filename
+			updates = append(updates, update{oldID, newFolder + "/" + filename})
+		}
+		rows.Close()
 
-			newURL, err := s.cloudinary.RenameImage(ctx, oldID, newID)
-			if err != nil {
-				return fmt.Errorf("rename %s: %w", oldID, err)
-			}
-			_, err = s.db.ExecContext(ctx,
+		cloudName := s.cloudinary.CloudName()
+		for _, u := range updates {
+			newURL := "https://res.cloudinary.com/" + cloudName + "/image/upload/" + u.newID
+			_, _ = s.db.ExecContext(ctx,
 				`UPDATE pin_images SET public_id = ?, secure_url = ? WHERE public_id = ? AND pin_id = ?`,
-				newID, newURL, oldID, pinID)
-			if err != nil {
-				return fmt.Errorf("update image record: %w", err)
-			}
+				u.newID, newURL, u.oldID, pinID)
 		}
 	}
 
