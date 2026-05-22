@@ -10,6 +10,7 @@ import {
 import L from "leaflet";
 import type { Map as LeafletMap } from "leaflet";
 import { getCountryFlag } from "../../utils/countryFlag";
+import { forwardGeocode, type GeoResult } from "../../utils/nominatim";
 import { countries as allCountries } from "countries-list";
 
 import "leaflet/dist/leaflet.css";
@@ -55,6 +56,7 @@ interface Props {
   markers?: TravelMarker[];
   onMarkerClick?: (marker: TravelMarker) => void;
   onMapClick?: (lat: number, lng: number) => void;
+  onLocationSelect?: (lat: number, lng: number) => void;
   pendingPin?: { lat: number; lng: number } | null;
 }
 
@@ -136,6 +138,7 @@ export default function TravelsMap({
   markers = [],
   onMarkerClick,
   onMapClick,
+  onLocationSelect,
   pendingPin,
 }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
@@ -148,6 +151,15 @@ export default function TravelsMap({
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Location (forward geocode) search — admin only
+  const [locQuery, setLocQuery] = useState("");
+  const [locResults, setLocResults] = useState<GeoResult[]>([]);
+  const [locOpen, setLocOpen] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+  const [locHighlightIdx, setLocHighlightIdx] = useState(-1);
+  const locInputRef = useRef<HTMLInputElement>(null);
+  const locDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fn = () => setFs(!!document.fullscreenElement);
@@ -168,6 +180,41 @@ export default function TravelsMap({
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        locInputRef.current?.contains(e.target as Node) ||
+        locDropdownRef.current?.contains(e.target as Node)
+      )
+        return;
+      setLocOpen(false);
+      setLocHighlightIdx(-1);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!onLocationSelect) return;
+    const q = locQuery.trim();
+    if (!q) {
+      setLocResults([]);
+      setLocOpen(false);
+      return;
+    }
+    setLocLoading(true);
+    const t = setTimeout(async () => {
+      const results = await forwardGeocode(q);
+      setLocResults(results);
+      setLocOpen(results.length > 0);
+      setLocLoading(false);
+    }, 400);
+    return () => {
+      clearTimeout(t);
+      setLocLoading(false);
+    };
+  }, [locQuery, onLocationSelect]);
 
   const toggleFs = useCallback(async () => {
     if (!document.fullscreenElement)
@@ -228,6 +275,38 @@ export default function TravelsMap({
     }
   };
 
+  const handleLocSelect = useCallback(
+    (result: GeoResult) => {
+      mapRef.current?.flyTo([result.lat, result.lng], 12);
+      onLocationSelect?.(result.lat, result.lng);
+      setLocQuery("");
+      setLocResults([]);
+      setLocOpen(false);
+      setLocHighlightIdx(-1);
+    },
+    [onLocationSelect],
+  );
+
+  const handleLocKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setLocOpen(false);
+      setLocHighlightIdx(-1);
+      return;
+    }
+    if (!locOpen || locResults.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setLocHighlightIdx((i) => Math.min(i + 1, locResults.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setLocHighlightIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const idx = locHighlightIdx >= 0 ? locHighlightIdx : 0;
+      if (locResults[idx]) handleLocSelect(locResults[idx]);
+    }
+  };
+
   const counterText =
     markers.length === 0
       ? "no places logged yet"
@@ -261,6 +340,28 @@ export default function TravelsMap({
           />
         </div>
         <div className="tmap-controls">
+          {onLocationSelect && (
+            <>
+              <input
+                ref={locInputRef}
+                className="tmap-loc-input"
+                value={locQuery}
+                placeholder={locLoading ? "searching..." : "fly to location..."}
+                onChange={(e) => {
+                  setLocQuery(e.target.value);
+                  setLocHighlightIdx(-1);
+                }}
+                onFocus={() => {
+                  if (locResults.length > 0) setLocOpen(true);
+                }}
+                onKeyDown={handleLocKeyDown}
+                aria-label="Fly to location"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <div className="tmap-divider" />
+            </>
+          )}
           <button
             className="tmap-btn"
             onClick={() => mapRef.current?.zoomOut()}
@@ -368,6 +469,24 @@ export default function TravelsMap({
               </button>
             ))
           )}
+        </div>
+      )}
+
+      {onLocationSelect && locOpen && locResults.length > 0 && (
+        <div ref={locDropdownRef} className="tmap-loc-dropdown">
+          {locResults.map((r, i) => (
+            <button
+              key={`${r.lat},${r.lng}`}
+              className={`tmap-dropdown-item${i === locHighlightIdx ? " tmap-dropdown-item--hi" : ""}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleLocSelect(r);
+              }}
+              onMouseEnter={() => setLocHighlightIdx(i)}
+            >
+              <span className="tmap-loc-result-name">{r.displayName}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>

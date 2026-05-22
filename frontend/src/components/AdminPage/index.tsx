@@ -10,11 +10,14 @@ import {
   deletePinImage,
   syncPinImages,
   getCloudinaryFolders,
+  updatePinFolder,
   type Pin,
   type PinImage,
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
+import { reverseGeocode } from "../../utils/nominatim";
+import ImageCropModal from "../ImageCropModal";
 import "./index.css";
 
 const TOKEN_KEY = "ep-admin-token";
@@ -75,32 +78,6 @@ function clearToken() {
   }
 }
 
-async function reverseGeocode(lat: number, lng: number) {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`,
-      { headers: { "User-Agent": "estebanpuyanas.github.io" } },
-    );
-    if (!res.ok) return null;
-    const data = await res.json();
-    const addr = data.address ?? {};
-    return {
-      locationName:
-        addr.city ??
-        addr.town ??
-        addr.village ??
-        addr.municipality ??
-        addr.county ??
-        "",
-      country: addr.country ?? "",
-    };
-  } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] reverse geocode failed");
-    return null;
-  }
-}
-
 function formatDate(raw: string): string {
   if (!raw) return "";
   try {
@@ -157,7 +134,14 @@ export default function AdminPage() {
   const [deletingImage, setDeletingImage] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Folder editing state ──────────────────────────────────────
+  const [editingFolder, setEditingFolder] = useState(false);
+  const [folderDraft, setFolderDraft] = useState("");
+  const [savingFolder, setSavingFolder] = useState(false);
+  const [showFolderEditDropdown, setShowFolderEditDropdown] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -171,6 +155,7 @@ export default function AdminPage() {
     if (!editingPinId) {
       setPinImages([]);
       setBrokenImages(new Set());
+      setEditingFolder(false);
       return;
     }
     setImagesLoading(true);
@@ -302,13 +287,20 @@ export default function AdminPage() {
   };
 
   // ── Image upload ──────────────────────────────────────────────
-  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || panel.mode !== "editing") return;
     e.target.value = "";
+    setCropFile(file);
+  };
+
+  const handleCropConfirm = async (blob: Blob) => {
+    if (panel.mode !== "editing" || !cropFile) return;
+    setCropFile(null);
     setUploadingImage(true);
     setSubmitError("");
     try {
+      const file = new File([blob], cropFile.name, { type: blob.type });
       const img = await uploadPinImage(panel.pin.id, file, token);
       setPinImages((prev) => [img, ...prev]);
     } catch (err) {
@@ -317,6 +309,30 @@ export default function AdminPage() {
       else setSubmitError("Failed to upload image.");
     } finally {
       setUploadingImage(false);
+    }
+  };
+
+  // ── Folder update ─────────────────────────────────────────────
+  const handleSaveFolder = async () => {
+    if (panel.mode !== "editing") return;
+    const newFolder = folderDraft.trim();
+    if (!newFolder) return;
+    if (newFolder === panel.pin.cloudinaryFolder) {
+      setEditingFolder(false);
+      return;
+    }
+    setSavingFolder(true);
+    setSubmitError("");
+    try {
+      await updatePinFolder(panel.pin.id, newFolder, token);
+      setPanel({ mode: "editing", pin: { ...panel.pin, cloudinaryFolder: newFolder } });
+      setEditingFolder(false);
+      setSubmitSuccess("folder updated.");
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      else setSubmitError("Failed to update folder.");
+    } finally {
+      setSavingFolder(false);
     }
   };
 
@@ -545,6 +561,102 @@ export default function AdminPage() {
             </p>
           </div>
 
+          {!editingFolder ? (
+            <div className="admin-folder-row">
+              <div className="admin-folder-info">
+                <span className="admin-form-label">folder</span>
+                <span className="admin-coord-val">
+                  {pin.cloudinaryFolder || "—"}
+                </span>
+              </div>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={() => {
+                  setFolderDraft(pin.cloudinaryFolder ?? "");
+                  setEditingFolder(true);
+                  setSubmitError("");
+                }}
+              >
+                edit
+              </button>
+            </div>
+          ) : (
+            <div className="admin-folder-edit">
+              <label className="admin-label">
+                cloudinary folder
+                {(() => {
+                  const q = folderDraft.toLowerCase();
+                  const matches = folders.filter((f) =>
+                    f.toLowerCase().includes(q),
+                  );
+                  const isNew =
+                    folderDraft !== "" && !folders.includes(folderDraft);
+                  const showList =
+                    showFolderEditDropdown && (isNew || matches.length > 0);
+                  return (
+                    <div className="admin-combobox">
+                      <input
+                        className="admin-input"
+                        type="text"
+                        placeholder="e.g. travels/usa/blairstown"
+                        value={folderDraft}
+                        onChange={(e) => setFolderDraft(e.target.value)}
+                        onFocus={() => setShowFolderEditDropdown(true)}
+                        onBlur={() =>
+                          setTimeout(() => setShowFolderEditDropdown(false), 150)
+                        }
+                        autoComplete="off"
+                        autoFocus
+                      />
+                      {showList && (
+                        <ul className="admin-combobox-list">
+                          {isNew && (
+                            <li
+                              className="admin-combobox-item admin-combobox-item--create"
+                              onMouseDown={() =>
+                                setShowFolderEditDropdown(false)
+                              }
+                            >
+                              create: {folderDraft}
+                            </li>
+                          )}
+                          {matches.map((f) => (
+                            <li
+                              key={f}
+                              className="admin-combobox-item"
+                              onMouseDown={() => {
+                                setFolderDraft(f);
+                                setShowFolderEditDropdown(false);
+                              }}
+                            >
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })()}
+              </label>
+              <div className="admin-folder-actions">
+                <button
+                  className="admin-btn admin-btn--primary"
+                  onClick={handleSaveFolder}
+                  disabled={savingFolder || !folderDraft.trim()}
+                >
+                  {savingFolder ? "saving..." : "save folder"}
+                </button>
+                <button
+                  className="admin-btn admin-btn--ghost"
+                  onClick={() => setEditingFolder(false)}
+                  disabled={savingFolder}
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <button
             className="admin-btn admin-btn--ghost admin-upload-btn"
             onClick={() => fileInputRef.current?.click()}
@@ -745,6 +857,7 @@ export default function AdminPage() {
             markers={markers}
             onMapClick={handleMapClick}
             onMarkerClick={handleMarkerClick}
+            onLocationSelect={handleMapClick}
             pendingPin={
               panel.mode === "new" ? { lat: panel.lat, lng: panel.lng } : null
             }
@@ -752,6 +865,14 @@ export default function AdminPage() {
         </div>
         <div className="admin-side">{renderPanel()}</div>
       </div>
+
+      {cropFile && (
+        <ImageCropModal
+          file={cropFile}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
 
       {editingImage && (
         <div

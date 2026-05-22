@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -175,6 +176,29 @@ func (h *TravelPinHandler) SyncPinImages(w http.ResponseWriter, r *http.Request)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]int{"pruned": count})
+}
+
+func (h *TravelPinHandler) UpdatePinFolder(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	var req model.UpdateFolderRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.CloudinaryFolder == "" {
+		http.Error(w, `{"error":"cloudinaryFolder is required"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.MoveFolder(r.Context(), id, req.CloudinaryFolder); err != nil {
+		log.Printf("MoveFolder error: %v", err)
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to update folder"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *TravelPinHandler) GetCloudinaryFolders(w http.ResponseWriter, r *http.Request) {

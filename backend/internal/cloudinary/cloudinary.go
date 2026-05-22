@@ -2,9 +2,11 @@ package cloudinary
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
+	"strings"
 
 	cld "github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api"
@@ -13,6 +15,10 @@ import (
 
 	"lastfm/api/internal/model"
 )
+
+// ErrFolderNotFound is returned by RenameFolder when Cloudinary cannot locate
+// the source folder. Callers may fall back to per-image rename.
+var ErrFolderNotFound = errors.New("cloudinary folder not found")
 
 type CloudinaryService struct {
 	client    *cld.Cloudinary
@@ -83,6 +89,48 @@ func (s *CloudinaryService) UploadImage(ctx context.Context, file io.Reader, fol
 		CloudinaryPublicID:  resp.PublicID,
 		CloudinarySecureURL: resp.SecureURL,
 	}, nil
+}
+
+// RenameFolder renames an entire Cloudinary folder atomically.
+// Returns ErrFolderNotFound if Cloudinary cannot locate the source path so
+// callers can fall back to per-image rename.
+func (s *CloudinaryService) RenameFolder(ctx context.Context, fromPath, toPath string) error {
+	resp, err := s.client.Admin.RenameFolder(ctx, admin.RenameFolderParams{
+		FromPath: fromPath,
+		ToPath:   toPath,
+	})
+	if err != nil {
+		msg := strings.ToLower(err.Error())
+		if strings.Contains(msg, "not found") ||
+			strings.Contains(msg, "doesn't exist") ||
+			strings.Contains(msg, "cannot find") {
+			return ErrFolderNotFound
+		}
+		return fmt.Errorf("rename folder: %w", err)
+	}
+	if resp.Error.Message != "" {
+		msg := strings.ToLower(resp.Error.Message)
+		if strings.Contains(msg, "not found") ||
+			strings.Contains(msg, "doesn't exist") ||
+			strings.Contains(msg, "cannot find") {
+			return ErrFolderNotFound
+		}
+		return fmt.Errorf("rename folder: %s", resp.Error.Message)
+	}
+	return nil
+}
+
+// RenameImage moves a single asset to a new public_id using the Upload API.
+// Returns the new secure URL constructed from the cloud name.
+func (s *CloudinaryService) RenameImage(ctx context.Context, fromPublicID, toPublicID string) (string, error) {
+	_, err := s.client.Upload.Rename(ctx, uploader.RenameParams{
+		FromPublicID: fromPublicID,
+		ToPublicID:   toPublicID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("rename image: %w", err)
+	}
+	return "https://res.cloudinary.com/" + s.cloudName + "/image/upload/" + toPublicID, nil
 }
 
 func (s *CloudinaryService) DeleteImage(ctx context.Context, publicID string) error {
