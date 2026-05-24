@@ -201,6 +201,28 @@ func (h *TravelPinHandler) UpdatePinFolder(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *TravelPinHandler) UpdateLocationName(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	var req model.UpdateLocationNameRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.LocationName) == "" {
+		http.Error(w, `{"error":"locationName is required"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.UpdateLocationName(r.Context(), id, strings.TrimSpace(req.LocationName)); err != nil {
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to update location name"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *TravelPinHandler) GetCloudinaryFolders(w http.ResponseWriter, r *http.Request) {
 	folders, err := h.svc.GetCloudinaryFolders(r.Context())
 	if err != nil {

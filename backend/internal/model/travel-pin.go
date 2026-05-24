@@ -26,3 +26,7 @@ type UpdateCaptionRequest struct {
 type UpdateFolderRequest struct {
 	CloudinaryFolder string `json:"cloudinaryFolder"`
 }
+
+type UpdateLocationNameRequest struct {
+	LocationName string `json:"locationName"`
+}

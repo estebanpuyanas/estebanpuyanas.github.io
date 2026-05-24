@@ -319,6 +319,20 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 	return err
 }
 
+func (s *TravelPinService) UpdateLocationName(ctx context.Context, pinID, locationName string) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE travel_pins SET location_name = ? WHERE id = ?`,
+		locationName, pinID)
+	if err != nil {
+		return fmt.Errorf("update location name: %w", err)
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("pin not found")
+	}
+	return nil
+}
+
 func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {
 	result, err := s.db.ExecContext(ctx,
 		`UPDATE pin_images SET caption = ? WHERE public_id = ? AND pin_id = ?`,

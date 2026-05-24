@@ -98,6 +98,8 @@ func main() {
 		handler.AdminMiddleware(travelPinHandler.SyncPinImages))
 	mux.HandleFunc("PATCH /api/admin/travel/pins/{id}/folder",
 		handler.AdminMiddleware(travelPinHandler.UpdatePinFolder))
+	mux.HandleFunc("PATCH /api/admin/travel/pins/{id}/name",
+		handler.AdminMiddleware(travelPinHandler.UpdateLocationName))
 
 	port := os.Getenv("PORT")
 	if port == "" {

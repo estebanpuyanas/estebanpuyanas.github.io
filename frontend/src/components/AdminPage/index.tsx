@@ -11,6 +11,7 @@ import {
   syncPinImages,
   getCloudinaryFolders,
   updatePinFolder,
+  updatePinLocationName,
   type Pin,
   type PinImage,
 } from "../../services/travelPinService";
@@ -143,6 +144,11 @@ export default function AdminPage() {
   const [savingFolder, setSavingFolder] = useState(false);
   const [showFolderEditDropdown, setShowFolderEditDropdown] = useState(false);
 
+  // ── Location name editing state ───────────────────────────────
+  const [editingLocationName, setEditingLocationName] = useState(false);
+  const [locationNameDraft, setLocationNameDraft] = useState("");
+  const [savingLocationName, setSavingLocationName] = useState(false);
+
   useEffect(() => {
     if (!token) return;
     getCloudinaryFolders(token)
@@ -156,6 +162,7 @@ export default function AdminPage() {
       setPinImages([]);
       setBrokenImages(new Set());
       setEditingFolder(false);
+      setEditingLocationName(false);
       return;
     }
     setImagesLoading(true);
@@ -325,14 +332,46 @@ export default function AdminPage() {
     setSubmitError("");
     try {
       await updatePinFolder(panel.pin.id, newFolder, token);
-      setPanel({ mode: "editing", pin: { ...panel.pin, cloudinaryFolder: newFolder } });
+      setPanel({
+        mode: "editing",
+        pin: { ...panel.pin, cloudinaryFolder: newFolder },
+      });
       setEditingFolder(false);
       setSubmitSuccess("folder updated.");
     } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
       else setSubmitError("Failed to update folder.");
     } finally {
       setSavingFolder(false);
+    }
+  };
+
+  // ── Location name update ──────────────────────────────────────
+  const handleSaveLocationName = async () => {
+    if (panel.mode !== "editing") return;
+    const newName = locationNameDraft.trim();
+    if (!newName) return;
+    if (newName === panel.pin.locationName) {
+      setEditingLocationName(false);
+      return;
+    }
+    setSavingLocationName(true);
+    setSubmitError("");
+    try {
+      await updatePinLocationName(panel.pin.id, newName, token);
+      setPanel({
+        mode: "editing",
+        pin: { ...panel.pin, locationName: newName },
+      });
+      setEditingLocationName(false);
+      setSubmitSuccess("location name updated.");
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Failed to update location name.");
+    } finally {
+      setSavingLocationName(false);
     }
   };
 
@@ -554,7 +593,54 @@ export default function AdminPage() {
           </div>
 
           <div className="admin-pin-info">
-            <p className="admin-pin-name">{pin.locationName}</p>
+            {!editingLocationName ? (
+              <div className="admin-folder-row">
+                <p className="admin-pin-name">{pin.locationName}</p>
+                <button
+                  className="admin-btn admin-btn--ghost"
+                  onClick={() => {
+                    setLocationNameDraft(pin.locationName);
+                    setEditingLocationName(true);
+                    setSubmitError("");
+                  }}
+                >
+                  edit
+                </button>
+              </div>
+            ) : (
+              <div className="admin-folder-edit">
+                <label className="admin-label">
+                  location name
+                  <input
+                    className="admin-input"
+                    type="text"
+                    value={locationNameDraft}
+                    onChange={(e) => setLocationNameDraft(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveLocationName();
+                      if (e.key === "Escape") setEditingLocationName(false);
+                    }}
+                  />
+                </label>
+                <div className="admin-folder-actions">
+                  <button
+                    className="admin-btn admin-btn--primary"
+                    onClick={handleSaveLocationName}
+                    disabled={savingLocationName || !locationNameDraft.trim()}
+                  >
+                    {savingLocationName ? "saving..." : "save name"}
+                  </button>
+                  <button
+                    className="admin-btn admin-btn--ghost"
+                    onClick={() => setEditingLocationName(false)}
+                    disabled={savingLocationName}
+                  >
+                    cancel
+                  </button>
+                </div>
+              </div>
+            )}
             <p className="admin-pin-country">{pin.country}</p>
             <p className="admin-coord-val">
               {pin.latitude.toFixed(4)}, {pin.longitude.toFixed(4)}
@@ -603,7 +689,10 @@ export default function AdminPage() {
                         onChange={(e) => setFolderDraft(e.target.value)}
                         onFocus={() => setShowFolderEditDropdown(true)}
                         onBlur={() =>
-                          setTimeout(() => setShowFolderEditDropdown(false), 150)
+                          setTimeout(
+                            () => setShowFolderEditDropdown(false),
+                            150,
+                          )
                         }
                         autoComplete="off"
                         autoFocus
