@@ -30,3 +30,7 @@ type UpdateFolderRequest struct {
 type UpdateLocationNameRequest struct {
 	LocationName string `json:"locationName"`
 }
+
+type UpdateImageOrderRequest struct {
+	PublicIDs []string `json:"publicIds"`
+}

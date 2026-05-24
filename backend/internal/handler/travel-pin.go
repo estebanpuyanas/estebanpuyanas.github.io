@@ -201,6 +201,28 @@ func (h *TravelPinHandler) UpdatePinFolder(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (h *TravelPinHandler) UpdateImageOrder(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, `{"error":"missing pin id"}`, http.StatusBadRequest)
+		return
+	}
+	var req model.UpdateImageOrderRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.PublicIDs) == 0 {
+		http.Error(w, `{"error":"publicIds array is required"}`, http.StatusBadRequest)
+		return
+	}
+	if err := h.svc.UpdateImageOrder(r.Context(), id, req.PublicIDs); err != nil {
+		if err.Error() == "pin not found" {
+			http.Error(w, `{"error":"pin not found"}`, http.StatusNotFound)
+		} else {
+			http.Error(w, `{"error":"failed to update image order"}`, http.StatusInternalServerError)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (h *TravelPinHandler) UpdateLocationName(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {
