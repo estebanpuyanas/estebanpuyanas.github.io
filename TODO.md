@@ -13,7 +13,6 @@
 
 
 # Frontend
-- [ ] Increase size of image viewing modal to take up more of the screen.
 - [ ] Add projects from github to projects page.
 - [ ] Fix terminal ascii art it looks so chopped.
 - [ ] Remove cursor from terminal when user has not clicked on terminal. Only become active when user clicks on terminal tile.
@@ -30,7 +29,6 @@
  - [ ] Get good at railway deployments or find a better alternative.
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
  - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
- - [ ] Make album for Franchonia Notch.
 
 # Fullstack
 - [ ] GitHub projects page.
