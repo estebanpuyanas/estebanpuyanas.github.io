@@ -20,7 +20,6 @@ const ASPECTS = [
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
     img.addEventListener("load", () => resolve(img));
     img.addEventListener("error", reject);
     img.src = src;
@@ -106,7 +105,9 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
   const [displaySrc, setDisplaySrc] = useState(imageSrc);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
+  const [snapRotation, setSnapRotation] = useState(0); // multiples of 90°
+  const [fineRotation, setFineRotation] = useState(0); // slider -45..+45
+  const effectiveRotation = snapRotation + fineRotation;
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
   const [aspect, setAspect] = useState<number | undefined>(undefined);
@@ -153,7 +154,7 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
       const blob = await cropToBlob(
         displaySrc,
         croppedAreaPixels,
-        rotation,
+        effectiveRotation,
         file.type || "image/jpeg",
       );
       onConfirm(blob);
@@ -177,7 +178,7 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
             image={displaySrc}
             crop={crop}
             zoom={zoom}
-            rotation={rotation}
+            rotation={effectiveRotation}
             aspect={aspect}
             onCropChange={setCrop}
             onZoomChange={setZoom}
@@ -204,17 +205,33 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
 
           <div className="icrop-row">
             <span className="icrop-label">rotate</span>
+            <button
+              className="icrop-step-btn"
+              onClick={() => setSnapRotation((r) => r - 90)}
+              title="Rotate 90° counter-clockwise"
+            >
+              ↺
+            </button>
             <input
               type="range"
               className="icrop-slider"
               min={-45}
               max={45}
               step={0.5}
-              value={rotation}
-              onChange={(e) => setRotation(Number(e.target.value))}
+              value={fineRotation}
+              onChange={(e) => setFineRotation(Number(e.target.value))}
             />
+            <button
+              className="icrop-step-btn"
+              onClick={() => setSnapRotation((r) => r + 90)}
+              title="Rotate 90° clockwise"
+            >
+              ↻
+            </button>
             <span className="icrop-val">
-              {rotation > 0 ? `+${rotation}` : rotation}°
+              {effectiveRotation > 0
+                ? `+${effectiveRotation}`
+                : effectiveRotation}°
             </span>
           </div>
 
