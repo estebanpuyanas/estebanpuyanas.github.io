@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
 import {
@@ -11,6 +11,8 @@ import {
   syncPinImages,
   getCloudinaryFolders,
   updatePinFolder,
+  updatePinLocationName,
+  updateImageOrder,
   type Pin,
   type PinImage,
 } from "../../services/travelPinService";
@@ -143,6 +145,21 @@ export default function AdminPage() {
   const [savingFolder, setSavingFolder] = useState(false);
   const [showFolderEditDropdown, setShowFolderEditDropdown] = useState(false);
 
+  // ── Location name editing state ───────────────────────────────
+  const [editingLocationName, setEditingLocationName] = useState(false);
+  const [locationNameDraft, setLocationNameDraft] = useState("");
+  const [savingLocationName, setSavingLocationName] = useState(false);
+
+  // ── Re-crop (edit existing image) state ───────────────────────
+  const [reEditingImage, setReEditingImage] = useState<PinImage | null>(null);
+  const [fetchingForReEdit, setFetchingForReEdit] = useState(false);
+
+  // ── Drag-and-drop image reordering state ─────────────────────
+  const [draggingPublicId, setDraggingPublicId] = useState<string | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const dragOriginRef = useRef<PinImage[] | null>(null);
+  const dropSucceededRef = useRef(false);
+
   useEffect(() => {
     if (!token) return;
     getCloudinaryFolders(token)
@@ -156,6 +173,7 @@ export default function AdminPage() {
       setPinImages([]);
       setBrokenImages(new Set());
       setEditingFolder(false);
+      setEditingLocationName(false);
       return;
     }
     setImagesLoading(true);
@@ -295,20 +313,72 @@ export default function AdminPage() {
   };
 
   const handleCropConfirm = async (blob: Blob) => {
-    if (panel.mode !== "editing" || !cropFile) return;
+    if (panel.mode !== "editing") return;
+    const origFile = cropFile;
+    const reCropTarget = reEditingImage;
     setCropFile(null);
+    setReEditingImage(null);
     setUploadingImage(true);
     setSubmitError("");
-    try {
-      const file = new File([blob], cropFile.name, { type: blob.type });
-      const img = await uploadPinImage(panel.pin.id, file, token);
-      setPinImages((prev) => [img, ...prev]);
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized")
-        handleAuthError();
-      else setSubmitError("Failed to upload image.");
-    } finally {
-      setUploadingImage(false);
+
+    if (reCropTarget) {
+      // Replace an existing image: upload new, copy caption, delete old
+      try {
+        const file = new File([blob], "recrop.jpg", { type: blob.type });
+        let newImg = await uploadPinImage(panel.pin.id, file, token);
+        if (reCropTarget.caption) {
+          try {
+            await updateImageCaption(
+              panel.pin.id,
+              newImg.cloudinaryPublicId,
+              reCropTarget.caption,
+              token,
+            );
+            newImg = { ...newImg, caption: reCropTarget.caption };
+          } catch {
+            /* caption copy failed — continue */
+          }
+        }
+        await deletePinImage(
+          panel.pin.id,
+          reCropTarget.cloudinaryPublicId,
+          token,
+        );
+        const newList = pinImages.map((img) =>
+          img.cloudinaryPublicId === reCropTarget.cloudinaryPublicId
+            ? newImg
+            : img,
+        );
+        setPinImages(newList);
+        // Persist sort order so the re-cropped image keeps its position
+        await updateImageOrder(
+          panel.pin.id,
+          newList.map((i) => i.cloudinaryPublicId),
+          token,
+        );
+        setSubmitSuccess("image updated.");
+      } catch (err) {
+        if (err instanceof Error && err.message === "unauthorized")
+          handleAuthError();
+        else setSubmitError("Failed to re-crop image.");
+      } finally {
+        setUploadingImage(false);
+      }
+    } else {
+      // New upload
+      try {
+        const file = new File([blob], origFile?.name ?? "upload.jpg", {
+          type: blob.type,
+        });
+        const img = await uploadPinImage(panel.pin.id, file, token);
+        setPinImages((prev) => [...prev, img]);
+      } catch (err) {
+        if (err instanceof Error && err.message === "unauthorized")
+          handleAuthError();
+        else setSubmitError("Failed to upload image.");
+      } finally {
+        setUploadingImage(false);
+      }
     }
   };
 
@@ -325,14 +395,116 @@ export default function AdminPage() {
     setSubmitError("");
     try {
       await updatePinFolder(panel.pin.id, newFolder, token);
-      setPanel({ mode: "editing", pin: { ...panel.pin, cloudinaryFolder: newFolder } });
+      setPanel({
+        mode: "editing",
+        pin: { ...panel.pin, cloudinaryFolder: newFolder },
+      });
       setEditingFolder(false);
       setSubmitSuccess("folder updated.");
     } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
       else setSubmitError("Failed to update folder.");
     } finally {
       setSavingFolder(false);
+    }
+  };
+
+  // ── Location name update ──────────────────────────────────────
+  const handleSaveLocationName = async () => {
+    if (panel.mode !== "editing") return;
+    const newName = locationNameDraft.trim();
+    if (!newName) return;
+    if (newName === panel.pin.locationName) {
+      setEditingLocationName(false);
+      return;
+    }
+    setSavingLocationName(true);
+    setSubmitError("");
+    try {
+      await updatePinLocationName(panel.pin.id, newName, token);
+      setPanel({
+        mode: "editing",
+        pin: { ...panel.pin, locationName: newName },
+      });
+      setEditingLocationName(false);
+      setSubmitSuccess("location name updated.");
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized")
+        handleAuthError();
+      else setSubmitError("Failed to update location name.");
+    } finally {
+      setSavingLocationName(false);
+    }
+  };
+
+  // ── Drag-and-drop handlers ────────────────────────────────────
+  const handleDragStart = useCallback((index: number, publicId: string) => {
+    dragIndexRef.current = index;
+    dragOriginRef.current = [...pinImages];
+    dropSucceededRef.current = false;
+    setDraggingPublicId(publicId);
+  }, [pinImages]);
+
+  const handleDragOver = useCallback((e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === targetIndex) return;
+    setPinImages((prev) => {
+      const imgs = [...prev];
+      const [item] = imgs.splice(fromIndex, 1);
+      imgs.splice(targetIndex, 0, item);
+      dragIndexRef.current = targetIndex;
+      return imgs;
+    });
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    dropSucceededRef.current = true;
+    if (panel.mode !== "editing") return;
+    try {
+      await updateImageOrder(
+        panel.pin.id,
+        pinImages.map((img) => img.cloudinaryPublicId),
+        token,
+      );
+      dragOriginRef.current = null;
+    } catch (err) {
+      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
+      else if (dragOriginRef.current) setPinImages(dragOriginRef.current);
+    }
+    setDraggingPublicId(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [panel, pinImages, token]);
+
+  const handleDragEnd = useCallback(() => {
+    if (!dropSucceededRef.current && dragOriginRef.current) {
+      setPinImages(dragOriginRef.current);
+    }
+    dragIndexRef.current = null;
+    dragOriginRef.current = null;
+    setDraggingPublicId(null);
+  }, []);
+
+  // ── Re-crop an existing image ─────────────────────────────────
+  const handleReCropClick = async () => {
+    if (!editingImage) return;
+    setFetchingForReEdit(true);
+    setSubmitError("");
+    try {
+      const resp = await fetch(editingImage.cloudinarySecureUrl);
+      const blob = await resp.blob();
+      const file = new File([blob], "recrop.jpg", {
+        type: blob.type || "image/jpeg",
+      });
+      setReEditingImage(editingImage);
+      setEditingImage(null);
+      setCropFile(file);
+    } catch {
+      setSubmitError("Failed to load image for editing.");
+    } finally {
+      setFetchingForReEdit(false);
     }
   };
 
@@ -554,7 +726,54 @@ export default function AdminPage() {
           </div>
 
           <div className="admin-pin-info">
-            <p className="admin-pin-name">{pin.locationName}</p>
+            {!editingLocationName ? (
+              <div className="admin-folder-row">
+                <p className="admin-pin-name">{pin.locationName}</p>
+                <button
+                  className="admin-btn admin-btn--ghost"
+                  onClick={() => {
+                    setLocationNameDraft(pin.locationName);
+                    setEditingLocationName(true);
+                    setSubmitError("");
+                  }}
+                >
+                  edit
+                </button>
+              </div>
+            ) : (
+              <div className="admin-folder-edit">
+                <label className="admin-label">
+                  location name
+                  <input
+                    className="admin-input"
+                    type="text"
+                    value={locationNameDraft}
+                    onChange={(e) => setLocationNameDraft(e.target.value)}
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveLocationName();
+                      if (e.key === "Escape") setEditingLocationName(false);
+                    }}
+                  />
+                </label>
+                <div className="admin-folder-actions">
+                  <button
+                    className="admin-btn admin-btn--primary"
+                    onClick={handleSaveLocationName}
+                    disabled={savingLocationName || !locationNameDraft.trim()}
+                  >
+                    {savingLocationName ? "saving..." : "save name"}
+                  </button>
+                  <button
+                    className="admin-btn admin-btn--ghost"
+                    onClick={() => setEditingLocationName(false)}
+                    disabled={savingLocationName}
+                  >
+                    cancel
+                  </button>
+                </div>
+              </div>
+            )}
             <p className="admin-pin-country">{pin.country}</p>
             <p className="admin-coord-val">
               {pin.latitude.toFixed(4)}, {pin.longitude.toFixed(4)}
@@ -603,7 +822,10 @@ export default function AdminPage() {
                         onChange={(e) => setFolderDraft(e.target.value)}
                         onFocus={() => setShowFolderEditDropdown(true)}
                         onBlur={() =>
-                          setTimeout(() => setShowFolderEditDropdown(false), 150)
+                          setTimeout(
+                            () => setShowFolderEditDropdown(false),
+                            150,
+                          )
                         }
                         autoComplete="off"
                         autoFocus
@@ -684,8 +906,18 @@ export default function AdminPage() {
             </p>
           ) : (
             <div className="admin-image-grid">
-              {visibleImages.map((img) => (
-                <div key={img.cloudinaryPublicId} className="admin-image-card">
+              {visibleImages.map((img, index) => (
+                <div
+                  key={img.cloudinaryPublicId}
+                  className={`admin-image-card${draggingPublicId === img.cloudinaryPublicId ? " admin-image-card--dragging" : ""}`}
+                  draggable
+                  onDragStart={() =>
+                    handleDragStart(index, img.cloudinaryPublicId)
+                  }
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                >
                   <img
                     src={img.cloudinarySecureUrl}
                     alt={img.caption || ""}
@@ -702,7 +934,7 @@ export default function AdminPage() {
                       setEditingImage(img);
                       setCaptionDraft(img.caption);
                     }}
-                    title="edit caption"
+                    title="edit image"
                   >
                     ✏
                   </button>
@@ -870,7 +1102,10 @@ export default function AdminPage() {
         <ImageCropModal
           file={cropFile}
           onConfirm={handleCropConfirm}
-          onCancel={() => setCropFile(null)}
+          onCancel={() => {
+            setCropFile(null);
+            setReEditingImage(null);
+          }}
         />
       )}
 
@@ -915,9 +1150,17 @@ export default function AdminPage() {
 
             <div className="admin-img-modal-actions">
               <button
+                className="admin-btn admin-btn--ghost"
+                onClick={handleReCropClick}
+                disabled={fetchingForReEdit || deletingImage || captionSaving}
+                title="Crop, flip, or adjust this image"
+              >
+                {fetchingForReEdit ? "loading..." : "✂ crop & adjust"}
+              </button>
+              <button
                 className="admin-btn admin-btn--danger"
                 onClick={handleDeleteImage}
-                disabled={deletingImage || captionSaving}
+                disabled={deletingImage || captionSaving || fetchingForReEdit}
               >
                 {deletingImage ? "deleting..." : "delete image"}
               </button>

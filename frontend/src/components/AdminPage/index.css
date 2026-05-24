@@ -384,6 +384,13 @@
   border-radius: 3px;
   overflow: hidden;
   background: var(--bg-3);
+  cursor: grab;
+  transition: opacity 0.15s;
+}
+
+.admin-image-card--dragging {
+  opacity: 0.35;
+  cursor: grabbing;
 }
 
 .admin-image-thumb {

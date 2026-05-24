@@ -59,7 +59,7 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT public_id, secure_url, caption, uploaded_at
-		FROM pin_images WHERE pin_id = ? ORDER BY uploaded_at DESC`, id)
+		FROM pin_images WHERE pin_id = ? ORDER BY sort_order ASC, uploaded_at ASC`, id)
 	if err != nil {
 		return nil, fmt.Errorf("query images: %w", err)
 	}
@@ -144,9 +144,13 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 		return nil, err
 	}
 
+	var maxOrder int
+	_ = s.db.QueryRowContext(ctx,
+		`SELECT COALESCE(MAX(sort_order), -1) FROM pin_images WHERE pin_id = ?`, id).Scan(&maxOrder)
+
 	_, dbErr := s.db.ExecContext(ctx,
-		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, secure_url, caption) VALUES (?, ?, ?, '')`,
-		img.CloudinaryPublicID, id, img.CloudinarySecureURL)
+		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, secure_url, caption, sort_order) VALUES (?, ?, ?, '', ?)`,
+		img.CloudinaryPublicID, id, img.CloudinarySecureURL, maxOrder+1)
 	if dbErr == nil {
 		_ = s.db.QueryRowContext(ctx,
 			`SELECT uploaded_at FROM pin_images WHERE public_id = ?`,
@@ -317,6 +321,40 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 
 	_, err = s.db.ExecContext(ctx, `UPDATE travel_pins SET cloudinary_folder = ? WHERE id = ?`, newFolder, pinID)
 	return err
+}
+
+func (s *TravelPinService) UpdateImageOrder(ctx context.Context, pinID string, publicIDs []string) error {
+	var count int
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = ?`, pinID).Scan(&count); err != nil || count == 0 {
+		return fmt.Errorf("pin not found")
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback()
+	for i, pubID := range publicIDs {
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE pin_images SET sort_order = ? WHERE public_id = ? AND pin_id = ?`,
+			i, pubID, pinID); err != nil {
+			return fmt.Errorf("update sort_order: %w", err)
+		}
+	}
+	return tx.Commit()
+}
+
+func (s *TravelPinService) UpdateLocationName(ctx context.Context, pinID, locationName string) error {
+	result, err := s.db.ExecContext(ctx,
+		`UPDATE travel_pins SET location_name = ? WHERE id = ?`,
+		locationName, pinID)
+	if err != nil {
+		return fmt.Errorf("update location name: %w", err)
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("pin not found")
+	}
+	return nil
 }
 
 func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {

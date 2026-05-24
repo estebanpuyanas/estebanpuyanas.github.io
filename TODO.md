@@ -22,6 +22,7 @@
     - [ ] Distinct visual style per mode — e.g. solid line for driving, dashed for boat, dotted + lighter for plane.
     - [ ] Toggle button in map header to show/hide routes (hidden by default to avoid clutter).
     - [ ] Admin panel: new panel mode to create a route — pick from/to from existing pins via dropdowns, select mode, save. Also support deleting routes from the selected-pin panel.
+- [ ] Maybe try sine waves instead of EQ bars to make it less distracting in the music tile.
 
 # Misc
  - [ ] Start thinking about adding blog post stuff.

@@ -138,6 +138,43 @@ export async function updatePinFolder(
   if (!res.ok) throw new Error(`Failed to update folder: ${res.status}`);
 }
 
+export async function updateImageOrder(
+  pinId: string,
+  publicIds: string[],
+  token: string,
+): Promise<void> {
+  const res = await fetch(
+    `${BASE_URL}/api/admin/travel/pins/${pinId}/images/order`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ publicIds }),
+    },
+  );
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to update image order: ${res.status}`);
+}
+
+export async function updatePinLocationName(
+  pinId: string,
+  locationName: string,
+  token: string,
+): Promise<void> {
+  const res = await fetch(`${BASE_URL}/api/admin/travel/pins/${pinId}/name`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ locationName }),
+  });
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) throw new Error(`Failed to update location name: ${res.status}`);
+}
+
 export async function createPin(
   payload: CreatePinPayload,
   token: string,

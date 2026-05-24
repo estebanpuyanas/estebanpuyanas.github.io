@@ -75,6 +75,28 @@
   height: 2px;
 }
 
+.icrop-step-btn {
+  font-size: 0.85rem;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-3);
+  width: 1.6rem;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.icrop-step-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .icrop-pills {
   display: flex;
   gap: 0.35rem;

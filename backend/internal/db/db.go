@@ -38,5 +38,6 @@ func Open(path string) (*sql.DB, error) {
 	}
 	// idempotent! fails silently if column already exists
 	_, _ = db.Exec(`ALTER TABLE pin_images ADD COLUMN secure_url TEXT NOT NULL DEFAULT ''`)
+	_, _ = db.Exec(`ALTER TABLE pin_images ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`)
 	return db, nil
 }

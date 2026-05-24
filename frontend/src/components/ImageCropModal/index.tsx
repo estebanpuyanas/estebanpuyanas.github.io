@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Cropper from "react-easy-crop";
 import type { Area, Point } from "react-easy-crop";
 import "./index.css";
@@ -30,22 +30,18 @@ async function cropToBlob(
   src: string,
   pixels: Area,
   rotation: number,
-  flipH: boolean,
-  flipV: boolean,
   mimeType: string,
 ): Promise<Blob> {
   const image = await loadImage(src);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d")!;
 
-  // Safe canvas size that fits the image at any rotation angle
   const safe = 2 * ((Math.max(image.width, image.height) / 2) * Math.sqrt(2));
   canvas.width = safe;
   canvas.height = safe;
 
   ctx.translate(safe / 2, safe / 2);
   ctx.rotate((rotation * Math.PI) / 180);
-  ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
   ctx.translate(-image.width / 2, -image.height / 2);
   ctx.drawImage(image, 0, 0);
 
@@ -70,18 +66,81 @@ async function cropToBlob(
   );
 }
 
+async function buildFlippedSrc(
+  src: string,
+  flipH: boolean,
+  flipV: boolean,
+): Promise<string | null> {
+  if (!flipH && !flipV) return null;
+  const img = await loadImage(src);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.translate(img.width / 2, img.height / 2);
+  ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+  ctx.drawImage(img, -img.width / 2, -img.height / 2);
+  return new Promise((resolve) => {
+    canvas.toBlob(
+      (blob) => resolve(blob ? URL.createObjectURL(blob) : null),
+      "image/jpeg",
+      0.95,
+    );
+  });
+}
+
 export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
   const imageSrc = useMemo(() => URL.createObjectURL(file), [file]);
   useEffect(() => () => URL.revokeObjectURL(imageSrc), [imageSrc]);
 
+  // Blob URLs generated for flip previews — cleaned up on unmount
+  const flipBlobUrls = useRef<string[]>([]);
+  useEffect(
+    () => () => {
+      flipBlobUrls.current.forEach(URL.revokeObjectURL);
+    },
+    [],
+  );
+
+  const [displaySrc, setDisplaySrc] = useState(imageSrc);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
+  const [snapRotation, setSnapRotation] = useState(0); // multiples of 90°
+  const [fineRotation, setFineRotation] = useState(0); // slider -45..+45
+  const effectiveRotation = snapRotation + fineRotation;
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [flipping, setFlipping] = useState(false);
+
+  // Re-compute displaySrc whenever flip state changes
+  useEffect(() => {
+    let cancelled = false;
+    setFlipping(true);
+    buildFlippedSrc(imageSrc, flipH, flipV).then((url) => {
+      if (cancelled) {
+        if (url) URL.revokeObjectURL(url);
+        return;
+      }
+      setDisplaySrc((prev) => {
+        if (prev !== imageSrc) {
+          flipBlobUrls.current = flipBlobUrls.current.filter((u) => u !== prev);
+          URL.revokeObjectURL(prev);
+        }
+        const next = url ?? imageSrc;
+        if (url) flipBlobUrls.current.push(url);
+        return next;
+      });
+      // Reset crop position since the image source changed
+      setCrop({ x: 0, y: 0 });
+      setFlipping(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [flipH, flipV, imageSrc]);
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels);
@@ -91,12 +150,11 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
     if (!croppedAreaPixels) return;
     setProcessing(true);
     try {
+      // Flip is already baked into displaySrc, so only pass rotation
       const blob = await cropToBlob(
-        imageSrc,
+        displaySrc,
         croppedAreaPixels,
-        rotation,
-        flipH,
-        flipV,
+        effectiveRotation,
         file.type || "image/jpeg",
       );
       onConfirm(blob);
@@ -117,10 +175,10 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
 
         <div className="icrop-canvas">
           <Cropper
-            image={imageSrc}
+            image={displaySrc}
             crop={crop}
             zoom={zoom}
-            rotation={rotation}
+            rotation={effectiveRotation}
             aspect={aspect}
             onCropChange={setCrop}
             onZoomChange={setZoom}
@@ -147,17 +205,33 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
 
           <div className="icrop-row">
             <span className="icrop-label">rotate</span>
+            <button
+              className="icrop-step-btn"
+              onClick={() => setSnapRotation((r) => r - 90)}
+              title="Rotate 90° counter-clockwise"
+            >
+              ↺
+            </button>
             <input
               type="range"
               className="icrop-slider"
               min={-45}
               max={45}
               step={0.5}
-              value={rotation}
-              onChange={(e) => setRotation(Number(e.target.value))}
+              value={fineRotation}
+              onChange={(e) => setFineRotation(Number(e.target.value))}
             />
+            <button
+              className="icrop-step-btn"
+              onClick={() => setSnapRotation((r) => r + 90)}
+              title="Rotate 90° clockwise"
+            >
+              ↻
+            </button>
             <span className="icrop-val">
-              {rotation > 0 ? `+${rotation}` : rotation}°
+              {effectiveRotation > 0
+                ? `+${effectiveRotation}`
+                : effectiveRotation}°
             </span>
           </div>
 
@@ -181,12 +255,14 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
               <button
                 className={`icrop-pill${flipH ? " icrop-pill--on" : ""}`}
                 onClick={() => setFlipH((v) => !v)}
+                disabled={flipping}
               >
                 ↔ horizontal
               </button>
               <button
                 className={`icrop-pill${flipV ? " icrop-pill--on" : ""}`}
                 onClick={() => setFlipV((v) => !v)}
+                disabled={flipping}
               >
                 ↕ vertical
               </button>
@@ -201,7 +277,7 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
           <button
             className="admin-btn admin-btn--primary"
             onClick={handleConfirm}
-            disabled={processing}
+            disabled={processing || flipping}
           >
             {processing ? "processing..." : "crop & upload"}
           </button>
