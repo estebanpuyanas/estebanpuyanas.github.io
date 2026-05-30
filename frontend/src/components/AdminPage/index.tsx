@@ -439,44 +439,54 @@ export default function AdminPage() {
   };
 
   // ── Drag-and-drop handlers ────────────────────────────────────
-  const handleDragStart = useCallback((index: number, publicId: string) => {
-    dragIndexRef.current = index;
-    dragOriginRef.current = [...pinImages];
-    dropSucceededRef.current = false;
-    setDraggingPublicId(publicId);
-  }, [pinImages]);
+  const handleDragStart = useCallback(
+    (index: number, publicId: string) => {
+      dragIndexRef.current = index;
+      dragOriginRef.current = [...pinImages];
+      dropSucceededRef.current = false;
+      setDraggingPublicId(publicId);
+    },
+    [pinImages],
+  );
 
-  const handleDragOver = useCallback((e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null || fromIndex === targetIndex) return;
-    setPinImages((prev) => {
-      const imgs = [...prev];
-      const [item] = imgs.splice(fromIndex, 1);
-      imgs.splice(targetIndex, 0, item);
-      dragIndexRef.current = targetIndex;
-      return imgs;
-    });
-  }, []);
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, targetIndex: number) => {
+      e.preventDefault();
+      const fromIndex = dragIndexRef.current;
+      if (fromIndex === null || fromIndex === targetIndex) return;
+      setPinImages((prev) => {
+        const imgs = [...prev];
+        const [item] = imgs.splice(fromIndex, 1);
+        imgs.splice(targetIndex, 0, item);
+        dragIndexRef.current = targetIndex;
+        return imgs;
+      });
+    },
+    [],
+  );
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    dropSucceededRef.current = true;
-    if (panel.mode !== "editing") return;
-    try {
-      await updateImageOrder(
-        panel.pin.id,
-        pinImages.map((img) => img.cloudinaryPublicId),
-        token,
-      );
-      dragOriginRef.current = null;
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
-      else if (dragOriginRef.current) setPinImages(dragOriginRef.current);
-    }
-    setDraggingPublicId(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panel, pinImages, token]);
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      dropSucceededRef.current = true;
+      if (panel.mode !== "editing") return;
+      try {
+        await updateImageOrder(
+          panel.pin.id,
+          pinImages.map((img) => img.cloudinaryPublicId),
+          token,
+        );
+        dragOriginRef.current = null;
+      } catch (err) {
+        if (err instanceof Error && err.message === "unauthorized")
+          handleAuthError();
+        else if (dragOriginRef.current) setPinImages(dragOriginRef.current);
+      }
+      setDraggingPublicId(null);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [panel, pinImages, token],
+  );
 
   const handleDragEnd = useCallback(() => {
     if (!dropSucceededRef.current && dragOriginRef.current) {

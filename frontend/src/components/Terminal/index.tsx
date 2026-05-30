@@ -13,18 +13,19 @@ interface OutputLine {
 const PROMPT = "ep@portfolio:~$ ";
 
 const BANNER_LINES = [
-  "███████╗██████╗",
-  "██╔════╝██╔══██╗",
-  "█████╗  ██████╔╝",
-  "██╔══╝  ██╔═══╝",
-  "███████╗██║",
-  "╚══════╝╚═╝",
+  "███████████████      █████████████  ",
+  "███                  ███         ███",
+  "███                  ███         ███",
+  "███████████████      █████████████  ",
+  "███                  ███            ",
+  "███                  ███            ",
+  "███████████████      ███            ",
   "",
-  "esteban puyana — software engineer",
+  "esteban puyana portfolio website. use this terminal to navigate and explore.",
   "type 'help' to see available commands",
 ];
 
-const SECTIONS = ["education", "experience", "projects", "music"];
+const SECTIONS = ["about", "projects", "music", "travels"];
 
 /* ─── Output line renderer ───────────────────────────────────── */
 function renderLine(line: OutputLine) {
@@ -87,11 +88,9 @@ function processCommand(
   if (lower === "help") {
     const commands: [string, string][] = [
       ["help", "show this help message"],
-      ["whoami", "display identity info"],
       ["about", "short bio"],
       ["ls", "list pages"],
       ["open <page>", "navigate to a page"],
-      ["date", "print current date"],
       ["github", "open GitHub profile"],
       ["linkedin", "open LinkedIn profile"],
       ["clear", "clear the terminal"],
@@ -114,25 +113,6 @@ function processCommand(
     }
     lines.push({ id: id(), type: "blank", content: "" });
     return lines;
-  }
-
-  if (lower === "whoami") {
-    return [
-      { id: id(), type: "blank", content: "" },
-      { id: id(), type: "section-header", content: "Esteban Puyana Salazar" },
-      { id: id(), type: "output", content: "Software Engineer" },
-      {
-        id: id(),
-        type: "output",
-        content: "B.S. Computer Science & Philosophy",
-      },
-      {
-        id: id(),
-        type: "output",
-        content: "Northeastern University — Boston, MA",
-      },
-      { id: id(), type: "blank", content: "" },
-    ];
   }
 
   if (lower === "about") {
@@ -166,24 +146,6 @@ function processCommand(
     return [
       { id: id(), type: "blank", content: "" },
       { id: id(), type: "output", content: SECTIONS.join("   ") },
-      { id: id(), type: "blank", content: "" },
-    ];
-  }
-
-  if (lower === "date") {
-    const formatted = new Date().toLocaleString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      timeZoneName: "short",
-    });
-    return [
-      { id: id(), type: "blank", content: "" },
-      { id: id(), type: "output", content: formatted },
       { id: id(), type: "blank", content: "" },
     ];
   }
@@ -271,7 +233,8 @@ export default function Terminal() {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [_historyIdx, setHistoryIdx] = useState(-1);
-  const [focused, setFocused] = useState(true);
+  const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -281,10 +244,6 @@ export default function Terminal() {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
   }, [lines]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
@@ -362,8 +321,15 @@ export default function Terminal() {
     [handleSubmit, history, input],
   );
 
+  const cursorActive = focused || hovered;
+
   return (
-    <div className="terminal-wrapper" onClick={focusInput}>
+    <div
+      className="terminal-wrapper"
+      onClick={focusInput}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <div className="terminal-title-bar" onClick={(e) => e.stopPropagation()}>
         <span className="terminal-title-text">esteban@portfolio ~ — zsh</span>
       </div>
@@ -377,8 +343,7 @@ export default function Terminal() {
         <div className="terminal-input-display">
           <span>{input}</span>
           <span
-            className="terminal-cursor"
-            style={{ opacity: focused ? undefined : 0.3 }}
+            className={`terminal-cursor${cursorActive ? " terminal-cursor--active" : ""}`}
           />
           <input
             ref={inputRef}
