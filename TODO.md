@@ -10,6 +10,7 @@
     - [ ] New `Route` model: `id`, `from_pin_id`, `to_pin_id`, `mode` (plane/boat/car), optional `label`.
     - [ ] New DB table with foreign keys to pins — cascade delete when a referenced pin is deleted.
     - [ ] CRUD handlers + service layer (GET all routes, POST create, DELETE by id).
+- [ ] Fix rendering of previously listened to songs in /music, not a logic bug, probably something related to rendering speed or how the data is being passed to the frontend. Look into either caching or blocking speed so only fully rendered pages render.
 
 
 # Frontend
