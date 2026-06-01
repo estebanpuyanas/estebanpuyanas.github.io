@@ -33,11 +33,15 @@ export default function ScrobbleCarousel({
 }: Props) {
   const [page, setPage] = useState(0);
   const prevTrackCount = useRef(tracks.length);
+  const loadMorePageRef = useRef(-1);
 
   useEffect(() => {
-    if (tracks.length > prevTrackCount.current) {
-      const history = tracks.slice(1);
-      setPage(Math.floor((history.length - 1) / PAGE_SIZE));
+    if (
+      tracks.length > prevTrackCount.current &&
+      loadMorePageRef.current >= 0
+    ) {
+      setPage(loadMorePageRef.current + 1);
+      loadMorePageRef.current = -1;
     }
     prevTrackCount.current = tracks.length;
   }, [tracks.length]);
@@ -48,7 +52,9 @@ export default function ScrobbleCarousel({
 
   const current = tracks[0];
   const history = tracks.slice(1);
-  const totalPages = Math.max(1, Math.ceil(history.length / PAGE_SIZE));
+  const totalPages = canLoadMore
+    ? Math.max(1, Math.floor(history.length / PAGE_SIZE))
+    : Math.max(1, Math.ceil(history.length / PAGE_SIZE));
   const pageItems = history.slice(
     page * PAGE_SIZE,
     page * PAGE_SIZE + PAGE_SIZE,
@@ -61,6 +67,7 @@ export default function ScrobbleCarousel({
     if (!isLastPage) {
       setPage((p) => p + 1);
     } else if (canLoadMore) {
+      loadMorePageRef.current = page;
       onLoadMore();
     }
   };
