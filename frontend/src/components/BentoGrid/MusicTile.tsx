@@ -1,26 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecentTracks, type Track } from "../../services/lastfmService";
+import { useBentoMusic } from "../../hooks/useBentoMusic";
 
 const FALLBACK_ART = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%232a2a37'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%23363646'%3E%E2%99%AA%3C/text%3E%3C/svg%3E`;
-
-function useBentoMusic() {
-  const [track, setTrack] = useState<Track | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const load = () =>
-      getRecentTracks(1)
-        .then((t) => setTrack(t[0] ?? null))
-        .catch(() => {});
-
-    load().finally(() => setLoading(false));
-    const id = setInterval(load, 30_000);
-    return () => clearInterval(id);
-  }, []);
-
-  return { track, loading };
-}
 
 export default function MusicTile() {
   const navigate = useNavigate();

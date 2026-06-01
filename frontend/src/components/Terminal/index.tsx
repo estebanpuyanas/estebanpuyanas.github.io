@@ -12,20 +12,32 @@ interface OutputLine {
 /* ─── Constants ──────────────────────────────────────────────── */
 const PROMPT = "ep@portfolio:~$ ";
 
+// Module-level counter so makeBannerLines doesn't need a ref
+let _uid = 0;
+const nextLineId = () => ++_uid;
+
 const BANNER_LINES = [
-  "███████████████      █████████████  ",
-  "███                  ███         ███",
-  "███                  ███         ███",
-  "███████████████      █████████████  ",
-  "███                  ███            ",
-  "███                  ███            ",
-  "███████████████      ███            ",
-  "",
+  "   ______        ____  ",
+  "  / ____/       / __ \\ ",
+  " / __/          / /_/ / ",
+  "/ /_____       / ____/  ",
+  "\\______/      /_/       ",
+
   "esteban puyana portfolio website. use this terminal to navigate and explore.",
   "type 'help' to see available commands",
 ];
 
-const SECTIONS = ["about", "projects", "music", "travels"];
+const SECTIONS = ["about", "projects", "music", "travels", "admin"];
+
+function makeBannerLines(): OutputLine[] {
+  const result: OutputLine[] = BANNER_LINES.map((content) => ({
+    id: nextLineId(),
+    type: content === "" ? "blank" : "banner",
+    content,
+  }));
+  result.push({ id: nextLineId(), type: "blank", content: "" });
+  return result;
+}
 
 /* ─── Output line renderer ───────────────────────────────────── */
 function renderLine(line: OutputLine) {
@@ -199,7 +211,7 @@ function processCommand(
       {
         id: id(),
         type: "error",
-        content: `open: no page '${target}' — try: ${SECTIONS.join(", ")}`,
+        content: `open: no page '${target}'. Try: ${SECTIONS.join(", ")}`,
       },
       { id: id(), type: "blank", content: "" },
     ];
@@ -216,23 +228,11 @@ function processCommand(
 /* ─── Terminal Component ─────────────────────────────────────── */
 export default function Terminal() {
   const navigate = useNavigate();
-  const uid = useRef(0);
-  const nextId = () => ++uid.current;
 
-  const makeBannerLines = (): OutputLine[] => {
-    const result: OutputLine[] = BANNER_LINES.map((content) => ({
-      id: nextId(),
-      type: content === "" ? "blank" : "banner",
-      content,
-    }));
-    result.push({ id: nextId(), type: "blank", content: "" });
-    return result;
-  };
-
-  const [lines, setLines] = useState<OutputLine[]>(() => makeBannerLines());
+  const [lines, setLines] = useState<OutputLine[]>(makeBannerLines);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const [_historyIdx, setHistoryIdx] = useState(-1);
+  const [, setHistoryIdx] = useState(-1);
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
 
@@ -253,7 +253,7 @@ export default function Terminal() {
   const handleSubmit = useCallback(() => {
     const raw = input.trim();
     const echoLine: OutputLine = {
-      id: nextId(),
+      id: nextLineId(),
       type: "input",
       content: input,
     };
@@ -305,7 +305,7 @@ export default function Terminal() {
         e.preventDefault();
         setLines((prev) => [
           ...prev,
-          { id: nextId(), type: "input", content: input + "^C" },
+          { id: nextLineId(), type: "input", content: input + "^C" },
         ]);
         setInput("");
         setHistoryIdx(-1);
