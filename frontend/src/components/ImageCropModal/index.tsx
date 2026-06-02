@@ -231,7 +231,8 @@ export default function ImageCropModal({ file, onConfirm, onCancel }: Props) {
             <span className="icrop-val">
               {effectiveRotation > 0
                 ? `+${effectiveRotation}`
-                : effectiveRotation}°
+                : effectiveRotation}
+              °
             </span>
           </div>
 

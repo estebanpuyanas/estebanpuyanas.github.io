@@ -1,0 +1,76 @@
+.alanding-wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: calc(var(--nav-height) + 4rem) var(--gutter) 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.alanding-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.alanding-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.alanding-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.alanding-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.5rem;
+  background: var(--bg-2);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.alanding-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-3);
+}
+
+.alanding-card-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.alanding-card-name {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}
+
+.alanding-card-desc {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 480px) {
+  .alanding-grid {
+    grid-template-columns: 1fr;
+  }
+}

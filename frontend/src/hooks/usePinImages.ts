@@ -27,7 +27,10 @@ function reducer(s: State, a: Action): State {
     case "error":
       return { ...s, loading: false, error: true };
     case "prev":
-      return { ...s, current: ((s.current - 1) + s.images.length) % s.images.length };
+      return {
+        ...s,
+        current: (s.current - 1 + s.images.length) % s.images.length,
+      };
     case "next":
       return { ...s, current: (s.current + 1) % s.images.length };
     case "set_current":

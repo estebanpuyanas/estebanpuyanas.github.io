@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
+import AdminGate from "../AdminGate";
 import {
   createPin,
   deletePin,
@@ -10,7 +11,7 @@ import {
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
-import { useAdminAuth, getFunnyError } from "../../hooks/useAdminAuth";
+import { useAdminAuth } from "../../hooks/useAdminAuth";
 import { useCloudinaryFolders } from "../../hooks/useCloudinaryFolders";
 import { useAdminPinImages } from "../../hooks/useAdminPinImages";
 import { reverseGeocode } from "../../utils/nominatim";
@@ -36,7 +37,7 @@ type PanelState =
   | { mode: "selected"; pin: Pin }
   | { mode: "editing"; pin: Pin };
 
-export default function AdminPage() {
+export default function AdminTravelsPage() {
   const navigate = useNavigate();
   useTheme();
 
@@ -283,51 +284,15 @@ export default function AdminPage() {
   // ── Gate screen ───────────────────────────────────────────────
   if (!token) {
     return (
-      <div className="admin-gate">
-        <div className="admin-gate-box">
-          <p className="admin-gate-label">// admin</p>
-          <p className="admin-gate-hint">
-            Hmmm... Are you sure you should be here? <br /> enter your admin
-            token to continue:
-          </p>
-          {authError && (
-            <p className="admin-gate-error">
-              token rejected — {getFunnyError(failedAttempts, lastTokenSnippet)}
-            </p>
-          )}
-          <form
-            className="admin-gate-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
-            }}
-          >
-            <input
-              className="admin-input"
-              type="password"
-              placeholder="admin token"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              autoFocus
-            />
-            <button className="admin-btn admin-btn--primary" type="submit">
-              unlock
-              <br />
-            </button>
-            <br />
-            <p className="admin-gate-hint">
-              Psst... if your token got rejected maybe its best you just...
-            </p>
-            <button
-              type="button"
-              className="admin-btn admin-btn--ghost"
-              onClick={() => navigate(-1)}
-            >
-              ← go back
-            </button>
-          </form>
-        </div>
-      </div>
+      <AdminGate
+        section="travels"
+        tokenInput={tokenInput}
+        setTokenInput={setTokenInput}
+        authError={authError}
+        failedAttempts={failedAttempts}
+        lastTokenSnippet={lastTokenSnippet}
+        onLogin={handleLogin}
+      />
     );
   }
 
@@ -772,10 +737,14 @@ export default function AdminPage() {
   return (
     <div className="admin-layout">
       <div className="admin-header">
-        <span className="admin-header-label">// admin — travel pins</span>
-        <button className="admin-btn admin-btn--ghost" onClick={handleLogout}>
-          log out
-        </button>
+        <div className="admin-header-left">
+          <Link to="/admin" className="admin-btn admin-btn--ghost">← admin</Link>
+          <span className="admin-header-label">// travel pins</span>
+        </div>
+        <div className="admin-header-right">
+          <Link to="/admin/music" className="admin-btn admin-btn--ghost">music →</Link>
+          <button className="admin-btn admin-btn--ghost" onClick={handleLogout}>log out</button>
+        </div>
       </div>
 
       <div className="admin-body">

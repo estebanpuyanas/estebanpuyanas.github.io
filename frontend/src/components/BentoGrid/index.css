@@ -207,14 +207,26 @@
 /* Each SVG scrolls at a different speed — the phase drift
    between different-frequency waves creates the weaving/crossing
    pattern seen in audio waveform visualizers */
-.bento-wave-svg--1 { animation: bentoWaveScroll 5.5s linear infinite; }
-.bento-wave-svg--2 { animation: bentoWaveScroll 7.2s linear infinite; }
-.bento-wave-svg--3 { animation: bentoWaveScroll 3.6s linear infinite; }
-.bento-wave-svg--4 { animation: bentoWaveScroll 2.8s linear infinite; }
+.bento-wave-svg--1 {
+  animation: bentoWaveScroll 5.5s linear infinite;
+}
+.bento-wave-svg--2 {
+  animation: bentoWaveScroll 7.2s linear infinite;
+}
+.bento-wave-svg--3 {
+  animation: bentoWaveScroll 3.6s linear infinite;
+}
+.bento-wave-svg--4 {
+  animation: bentoWaveScroll 2.8s linear infinite;
+}
 
 @keyframes bentoWaveScroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .bento-wave-path {
@@ -242,19 +254,41 @@
 }
 
 @keyframes bentoWaveStroke {
-  0%    { stroke: #c0a36e; }
-  16.6% { stroke: #7fb4ca; }
-  33.3% { stroke: #98bb6c; }
-  50%   { stroke: #e46876; }
-  66.6% { stroke: #957fb8; }
-  83.3% { stroke: #6a9589; }
-  100%  { stroke: #c0a36e; }
+  0% {
+    stroke: #c0a36e;
+  }
+  16.6% {
+    stroke: #7fb4ca;
+  }
+  33.3% {
+    stroke: #98bb6c;
+  }
+  50% {
+    stroke: #e46876;
+  }
+  66.6% {
+    stroke: #957fb8;
+  }
+  83.3% {
+    stroke: #6a9589;
+  }
+  100% {
+    stroke: #c0a36e;
+  }
 }
 
-.bento-music:hover .bento-wave-svg--1 { animation-duration: 3s; }
-.bento-music:hover .bento-wave-svg--2 { animation-duration: 4s; }
-.bento-music:hover .bento-wave-svg--3 { animation-duration: 2s; }
-.bento-music:hover .bento-wave-svg--4 { animation-duration: 1.5s; }
+.bento-music:hover .bento-wave-svg--1 {
+  animation-duration: 3s;
+}
+.bento-music:hover .bento-wave-svg--2 {
+  animation-duration: 4s;
+}
+.bento-music:hover .bento-wave-svg--3 {
+  animation-duration: 2s;
+}
+.bento-music:hover .bento-wave-svg--4 {
+  animation-duration: 1.5s;
+}
 
 /* ─── Recommendation form ─────────────────────────────────────── */
 .bento-rec-form {

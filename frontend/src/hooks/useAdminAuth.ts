@@ -31,8 +31,9 @@ function getStoredToken(): string {
   try {
     return localStorage.getItem(TOKEN_KEY) ?? "";
   } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage read failed");
+    if (import.meta.env.DEV)
+      // eslint-disable-next-line no-console
+      console.warn("[AdminPage] localStorage read failed");
     return "";
   }
 }
@@ -41,8 +42,9 @@ function storeToken(t: string) {
   try {
     localStorage.setItem(TOKEN_KEY, t);
   } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage write failed");
+    if (import.meta.env.DEV)
+      // eslint-disable-next-line no-console
+      console.warn("[AdminPage] localStorage write failed");
   }
 }
 
@@ -50,8 +52,9 @@ function clearToken() {
   try {
     localStorage.removeItem(TOKEN_KEY);
   } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV) console.warn("[AdminPage] localStorage delete failed");
+    if (import.meta.env.DEV)
+      // eslint-disable-next-line no-console
+      console.warn("[AdminPage] localStorage delete failed");
   }
 }
 

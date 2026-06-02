@@ -387,7 +387,10 @@ export default function TravelsMap({
       >
         <MapCapture mapRef={mapRef} />
         <FillWorld trigger={fullscreen} />
-        <MapClickHandler onMapClick={onMapClick} suppressRef={suppressMapClick} />
+        <MapClickHandler
+          onMapClick={onMapClick}
+          suppressRef={suppressMapClick}
+        />
 
         <TileLayer
           url={CARTO_VOYAGER}
