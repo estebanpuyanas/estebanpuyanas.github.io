@@ -1,12 +1,28 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import NavBar from "../NavBar";
-import { BLOG_POSTS } from "../../data/blogPosts";
 import Footer from "../Footer";
+import { getPost, type BlogPost } from "../../services/blogService";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const post = BLOG_POSTS.find((p) => p.slug === slug);
+  useEffect(() => {
+    if (!slug) return;
+    setLoading(true);
+    setNotFound(false);
+    getPost(slug)
+      .then(setPost)
+      .catch((err: Error) => {
+        if (err.message === "not found") setNotFound(true);
+      })
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   return (
     <>
@@ -17,25 +33,34 @@ export default function BlogPostPage() {
             ← music
           </Link>
 
-          {post ? (
+          {loading && <p className="blog-post-loading">loading...</p>}
+
+          {!loading && notFound && (
+            <p className="projects-error">Post not found.</p>
+          )}
+
+          {!loading && post && (
             <>
               <header className="blog-post-header">
                 <p className="blog-post-date">
-                  {post.date}
-                  {post.wip && <span className="wip-badge">WIP</span>}
+                  {new Date(post.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
                 <h1 className="blog-post-title">{post.title}</h1>
-                <p className="blog-post-excerpt">{post.excerpt}</p>
+                {post.excerpt && (
+                  <p className="blog-post-excerpt">{post.excerpt}</p>
+                )}
               </header>
 
               <div className="blog-post-body">
-                {post.paragraphs.map((para, i) => (
-                  <p key={i}>{para}</p>
-                ))}
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {post.content}
+                </ReactMarkdown>
               </div>
             </>
-          ) : (
-            <p className="projects-error">Post not found.</p>
           )}
         </article>
       </div>

@@ -1,11 +1,7 @@
 # Backend
-- [ ] Determine models/controllers/services for music blog posts:
-    - [ ] Create an Apple Music Replay type list.
-    - [ ] Albums listened on previous years.
 - [ ] Add real way of storing people's recommended tracks. 
 - [ ] Rate limit (?) track recommending to prevent spam.
 - [ ] Add a way to detect already recommended tracks.
-- [ ] Update terminal functionality to navigate pages: Just missing admin page.
 - [ ] Travel routes between pins:
     - [ ] New `Route` model: `id`, `from_pin_id`, `to_pin_id`, `mode` (plane/boat/car), optional `label`.
     - [ ] New DB table with foreign keys to pins — cascade delete when a referenced pin is deleted.
@@ -23,7 +19,6 @@
     - [ ] Admin panel: new panel mode to create a route — pick from/to from existing pins via dropdowns, select mode, save. Also support deleting routes from the selected-pin panel.
 
 # Misc
- - [ ] Start thinking about adding blog post stuff.
  - [ ] Check out Neon for DB instead of SQLite.
  - [ ] Get good at railway deployments or find a better alternative.
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.

@@ -91,12 +91,18 @@ export function useAdminPinImages({
             );
             newImg = { ...newImg, caption: reCropTarget.caption };
           } catch {
-            /* caption copy failed — continue */
+            /* caption copy failed, just continue */
           }
         }
-        await deletePinImage(panelPin.id, reCropTarget.cloudinaryPublicId, token);
+        await deletePinImage(
+          panelPin.id,
+          reCropTarget.cloudinaryPublicId,
+          token,
+        );
         const newList = pinImages.map((img) =>
-          img.cloudinaryPublicId === reCropTarget.cloudinaryPublicId ? newImg : img,
+          img.cloudinaryPublicId === reCropTarget.cloudinaryPublicId
+            ? newImg
+            : img,
         );
         setPinImages(newList);
         await updateImageOrder(
@@ -229,18 +235,21 @@ export function useAdminPinImages({
     [pinImages],
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null || fromIndex === targetIndex) return;
-    setPinImages((prev) => {
-      const imgs = [...prev];
-      const [item] = imgs.splice(fromIndex, 1);
-      imgs.splice(targetIndex, 0, item);
-      dragIndexRef.current = targetIndex;
-      return imgs;
-    });
-  }, []);
+  const handleDragOver = useCallback(
+    (e: React.DragEvent, targetIndex: number) => {
+      e.preventDefault();
+      const fromIndex = dragIndexRef.current;
+      if (fromIndex === null || fromIndex === targetIndex) return;
+      setPinImages((prev) => {
+        const imgs = [...prev];
+        const [item] = imgs.splice(fromIndex, 1);
+        imgs.splice(targetIndex, 0, item);
+        dragIndexRef.current = targetIndex;
+        return imgs;
+      });
+    },
+    [],
+  );
 
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {

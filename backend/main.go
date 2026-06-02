@@ -52,6 +52,9 @@ func main() {
 	travelPinSvc := service.NewTravelPinService(database, cloudinarySvc)
 	travelPinHandler := handler.NewTravelPinHandler(travelPinSvc)
 
+	blogSvc := service.NewBlogService(database)
+	blogHandler := handler.NewBlogHandler(blogSvc)
+
 	curlHandler := handler.NewCurlHandler(lastfmSvc, travelPinSvc)
 
 	mux := http.NewServeMux()
@@ -103,6 +106,18 @@ func main() {
 	mux.HandleFunc("PUT /api/admin/travel/pins/{id}/images/order",
 		handler.AdminMiddleware(travelPinHandler.UpdateImageOrder))
 
+	// Blog — public
+	mux.HandleFunc("GET /api/blog/posts", blogHandler.GetPublishedPosts)
+	mux.HandleFunc("GET /api/blog/posts/{slug}", blogHandler.GetPublishedPost)
+
+	// Blog — admin
+	mux.HandleFunc("GET /api/admin/blog/posts", handler.AdminMiddleware(blogHandler.GetAllPosts))
+	mux.HandleFunc("POST /api/admin/blog/posts", handler.AdminMiddleware(blogHandler.CreatePost))
+	mux.HandleFunc("GET /api/admin/blog/posts/{id}", handler.AdminMiddleware(blogHandler.GetPost))
+	mux.HandleFunc("PUT /api/admin/blog/posts/{id}", handler.AdminMiddleware(blogHandler.UpdatePost))
+	mux.HandleFunc("DELETE /api/admin/blog/posts/{id}", handler.AdminMiddleware(blogHandler.DeletePost))
+	mux.HandleFunc("PATCH /api/admin/blog/posts/{id}/publish", handler.AdminMiddleware(blogHandler.SetPublished))
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -117,7 +132,7 @@ func main() {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, PATCH, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
