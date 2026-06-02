@@ -12,19 +12,32 @@ interface OutputLine {
 /* ─── Constants ──────────────────────────────────────────────── */
 const PROMPT = "ep@portfolio:~$ ";
 
+// Module-level counter so makeBannerLines doesn't need a ref
+let _uid = 0;
+const nextLineId = () => ++_uid;
+
 const BANNER_LINES = [
-  "███████╗██████╗",
-  "██╔════╝██╔══██╗",
-  "█████╗  ██████╔╝",
-  "██╔══╝  ██╔═══╝",
-  "███████╗██║",
-  "╚══════╝╚═╝",
-  "",
-  "esteban puyana — software engineer",
+  "   ______        ____  ",
+  "  / ____/       / __ \\ ",
+  " / __/          / /_/ / ",
+  "/ /_____       / ____/  ",
+  "\\______/      /_/       ",
+
+  "esteban puyana portfolio website. use this terminal to navigate and explore.",
   "type 'help' to see available commands",
 ];
 
-const SECTIONS = ["education", "experience", "projects", "music"];
+const SECTIONS = ["about", "projects", "music", "travels", "admin"];
+
+function makeBannerLines(): OutputLine[] {
+  const result: OutputLine[] = BANNER_LINES.map((content) => ({
+    id: nextLineId(),
+    type: content === "" ? "blank" : "banner",
+    content,
+  }));
+  result.push({ id: nextLineId(), type: "blank", content: "" });
+  return result;
+}
 
 /* ─── Output line renderer ───────────────────────────────────── */
 function renderLine(line: OutputLine) {
@@ -87,11 +100,9 @@ function processCommand(
   if (lower === "help") {
     const commands: [string, string][] = [
       ["help", "show this help message"],
-      ["whoami", "display identity info"],
       ["about", "short bio"],
       ["ls", "list pages"],
       ["open <page>", "navigate to a page"],
-      ["date", "print current date"],
       ["github", "open GitHub profile"],
       ["linkedin", "open LinkedIn profile"],
       ["clear", "clear the terminal"],
@@ -114,25 +125,6 @@ function processCommand(
     }
     lines.push({ id: id(), type: "blank", content: "" });
     return lines;
-  }
-
-  if (lower === "whoami") {
-    return [
-      { id: id(), type: "blank", content: "" },
-      { id: id(), type: "section-header", content: "Esteban Puyana Salazar" },
-      { id: id(), type: "output", content: "Software Engineer" },
-      {
-        id: id(),
-        type: "output",
-        content: "B.S. Computer Science & Philosophy",
-      },
-      {
-        id: id(),
-        type: "output",
-        content: "Northeastern University — Boston, MA",
-      },
-      { id: id(), type: "blank", content: "" },
-    ];
   }
 
   if (lower === "about") {
@@ -166,24 +158,6 @@ function processCommand(
     return [
       { id: id(), type: "blank", content: "" },
       { id: id(), type: "output", content: SECTIONS.join("   ") },
-      { id: id(), type: "blank", content: "" },
-    ];
-  }
-
-  if (lower === "date") {
-    const formatted = new Date().toLocaleString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      timeZoneName: "short",
-    });
-    return [
-      { id: id(), type: "blank", content: "" },
-      { id: id(), type: "output", content: formatted },
       { id: id(), type: "blank", content: "" },
     ];
   }
@@ -237,7 +211,7 @@ function processCommand(
       {
         id: id(),
         type: "error",
-        content: `open: no page '${target}' — try: ${SECTIONS.join(", ")}`,
+        content: `open: no page '${target}'. Try: ${SECTIONS.join(", ")}`,
       },
       { id: id(), type: "blank", content: "" },
     ];
@@ -254,24 +228,13 @@ function processCommand(
 /* ─── Terminal Component ─────────────────────────────────────── */
 export default function Terminal() {
   const navigate = useNavigate();
-  const uid = useRef(0);
-  const nextId = () => ++uid.current;
 
-  const makeBannerLines = (): OutputLine[] => {
-    const result: OutputLine[] = BANNER_LINES.map((content) => ({
-      id: nextId(),
-      type: content === "" ? "blank" : "banner",
-      content,
-    }));
-    result.push({ id: nextId(), type: "blank", content: "" });
-    return result;
-  };
-
-  const [lines, setLines] = useState<OutputLine[]>(() => makeBannerLines());
+  const [lines, setLines] = useState<OutputLine[]>(makeBannerLines);
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const [_historyIdx, setHistoryIdx] = useState(-1);
-  const [focused, setFocused] = useState(true);
+  const [, setHistoryIdx] = useState(-1);
+  const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -282,10 +245,6 @@ export default function Terminal() {
     }
   }, [lines]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
     setFocused(true);
@@ -294,7 +253,7 @@ export default function Terminal() {
   const handleSubmit = useCallback(() => {
     const raw = input.trim();
     const echoLine: OutputLine = {
-      id: nextId(),
+      id: nextLineId(),
       type: "input",
       content: input,
     };
@@ -346,7 +305,7 @@ export default function Terminal() {
         e.preventDefault();
         setLines((prev) => [
           ...prev,
-          { id: nextId(), type: "input", content: input + "^C" },
+          { id: nextLineId(), type: "input", content: input + "^C" },
         ]);
         setInput("");
         setHistoryIdx(-1);
@@ -362,8 +321,15 @@ export default function Terminal() {
     [handleSubmit, history, input],
   );
 
+  const cursorActive = focused || hovered;
+
   return (
-    <div className="terminal-wrapper" onClick={focusInput}>
+    <div
+      className="terminal-wrapper"
+      onClick={focusInput}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <div className="terminal-title-bar" onClick={(e) => e.stopPropagation()}>
         <span className="terminal-title-text">esteban@portfolio ~ — zsh</span>
       </div>
@@ -377,8 +343,7 @@ export default function Terminal() {
         <div className="terminal-input-display">
           <span>{input}</span>
           <span
-            className="terminal-cursor"
-            style={{ opacity: focused ? undefined : 0.3 }}
+            className={`terminal-cursor${cursorActive ? " terminal-cursor--active" : ""}`}
           />
           <input
             ref={inputRef}

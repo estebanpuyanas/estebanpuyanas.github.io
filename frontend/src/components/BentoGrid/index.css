@@ -126,7 +126,7 @@
 
 .bento-eq-panel {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   padding: 0.5rem 0.9rem 0.5rem 0.5rem;
   flex: 1;
@@ -186,150 +186,75 @@
   letter-spacing: 0.02em;
 }
 
-/* ─── EQ bars ─────────────────────────────────────────────────── */
-.bento-eq-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  width: 100%;
-}
-
-.bento-eq-bar {
-  flex: 1;
-  background: var(--accent);
-  border-radius: 3px;
-  transform-origin: bottom;
+/* ─── Wave visualizer ─────────────────────────────────────────── */
+.bento-wave-wrap {
   position: relative;
+  flex: 1;
   overflow: hidden;
+  border-radius: 3px;
+  min-height: 80px;
 }
 
-.bento-eq-bar::before {
-  content: "";
+.bento-wave-svg {
   position: absolute;
-  inset: 0 0 45% 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.32) 0%,
-    rgba(255, 255, 255, 0.08) 60%,
-    transparent 100%
-  );
-  border-radius: 3px 3px 0 0;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  fill: none;
 }
 
-.bento-eq-bar:nth-child(1) {
-  height: 90px;
-  animation:
-    bentoEqBarA 0.45s 0s ease-in-out infinite,
-    bentoEqBarColor 4s 0s linear infinite;
-}
-.bento-eq-bar:nth-child(2) {
-  height: 150px;
-  animation:
-    bentoEqBarB 0.38s 0.08s ease-in-out infinite,
-    bentoEqBarColor 4s 0.57s linear infinite;
-}
-.bento-eq-bar:nth-child(3) {
-  height: 70px;
-  animation:
-    bentoEqBarC 0.52s 0.15s ease-in-out infinite,
-    bentoEqBarColor 4s 1.14s linear infinite;
-}
-.bento-eq-bar:nth-child(4) {
-  height: 170px;
-  animation:
-    bentoEqBarA 0.41s 0.04s ease-in-out infinite,
-    bentoEqBarColor 4s 1.71s linear infinite;
-}
-.bento-eq-bar:nth-child(5) {
-  height: 115px;
-  animation:
-    bentoEqBarB 0.35s 0.19s ease-in-out infinite,
-    bentoEqBarColor 4s 2.28s linear infinite;
-}
-.bento-eq-bar:nth-child(6) {
-  height: 135px;
-  animation:
-    bentoEqBarC 0.48s 0.11s ease-in-out infinite,
-    bentoEqBarColor 4s 2.85s linear infinite;
-}
-.bento-eq-bar:nth-child(7) {
-  height: 80px;
-  animation:
-    bentoEqBarA 0.43s 0.07s ease-in-out infinite,
-    bentoEqBarColor 4s 3.42s linear infinite;
+/* Each SVG scrolls at a different speed — the phase drift
+   between different-frequency waves creates the weaving/crossing
+   pattern seen in audio waveform visualizers */
+.bento-wave-svg--1 { animation: bentoWaveScroll 5.5s linear infinite; }
+.bento-wave-svg--2 { animation: bentoWaveScroll 7.2s linear infinite; }
+.bento-wave-svg--3 { animation: bentoWaveScroll 3.6s linear infinite; }
+.bento-wave-svg--4 { animation: bentoWaveScroll 2.8s linear infinite; }
+
+@keyframes bentoWaveScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
-@keyframes bentoEqBarA {
-  0% {
-    transform: scaleY(0.15);
-  }
-  35% {
-    transform: scaleY(1);
-  }
-  65% {
-    transform: scaleY(0.55);
-  }
-  100% {
-    transform: scaleY(0.8);
-  }
-}
-@keyframes bentoEqBarB {
-  0% {
-    transform: scaleY(0.4);
-  }
-  20% {
-    transform: scaleY(0.9);
-  }
-  55% {
-    transform: scaleY(0.1);
-  }
-  100% {
-    transform: scaleY(0.75);
-  }
-}
-@keyframes bentoEqBarC {
-  0% {
-    transform: scaleY(0.7);
-  }
-  40% {
-    transform: scaleY(0.2);
-  }
-  75% {
-    transform: scaleY(1);
-  }
-  100% {
-    transform: scaleY(0.45);
-  }
+.bento-wave-path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-@keyframes bentoEqBarColor {
-  0% {
-    background: #c0a36e;
-  }
-  16.6% {
-    background: #7fb4ca;
-  }
-  33.3% {
-    background: #98bb6c;
-  }
-  50% {
-    background: #e46876;
-  }
-  66.6% {
-    background: #957fb8;
-  }
-  83.3% {
-    background: #6a9589;
-  }
-  100% {
-    background: #c0a36e;
-  }
+.bento-wave-path--1 {
+  stroke-width: 3;
+  animation: bentoWaveStroke 4s 0s linear infinite;
+}
+.bento-wave-path--2 {
+  stroke-width: 2;
+  opacity: 0.75;
+  animation: bentoWaveStroke 4s 1.33s linear infinite;
+}
+.bento-wave-path--3 {
+  stroke-width: 2;
+  animation: bentoWaveStroke 4s 2s linear infinite;
+}
+.bento-wave-path--4 {
+  stroke-width: 1.5;
+  opacity: 0.8;
+  animation: bentoWaveStroke 4s 0.67s linear infinite;
 }
 
-.bento-music:hover .bento-eq-bars .bento-eq-bar {
-  animation-duration: 0.2s, 4s;
+@keyframes bentoWaveStroke {
+  0%    { stroke: #c0a36e; }
+  16.6% { stroke: #7fb4ca; }
+  33.3% { stroke: #98bb6c; }
+  50%   { stroke: #e46876; }
+  66.6% { stroke: #957fb8; }
+  83.3% { stroke: #6a9589; }
+  100%  { stroke: #c0a36e; }
 }
+
+.bento-music:hover .bento-wave-svg--1 { animation-duration: 3s; }
+.bento-music:hover .bento-wave-svg--2 { animation-duration: 4s; }
+.bento-music:hover .bento-wave-svg--3 { animation-duration: 2s; }
+.bento-music:hover .bento-wave-svg--4 { animation-duration: 1.5s; }
 
 /* ─── Recommendation form ─────────────────────────────────────── */
 .bento-rec-form {

@@ -10,8 +10,9 @@ import {
 import L from "leaflet";
 import type { Map as LeafletMap } from "leaflet";
 import { getCountryFlag } from "../../utils/countryFlag";
-import { forwardGeocode, type GeoResult } from "../../utils/nominatim";
+import type { GeoResult } from "../../utils/nominatim";
 import { countries as allCountries } from "countries-list";
+import { useLocationSearch } from "../../hooks/useLocationSearch";
 
 import "leaflet/dist/leaflet.css";
 import "./index.css";
@@ -81,15 +82,15 @@ function MapCapture({
 
 function MapClickHandler({
   onMapClick,
-  suppress,
+  suppressRef,
 }: {
   onMapClick?: (lat: number, lng: number) => void;
-  suppress: React.MutableRefObject<boolean>;
+  suppressRef: React.MutableRefObject<boolean>;
 }) {
   useMapEvents({
     click(e) {
-      if (suppress.current) {
-        suppress.current = false;
+      if (suppressRef.current) {
+        suppressRef.current = false;
         return;
       }
       onMapClick?.(e.latlng.lat, e.latlng.lng);
@@ -151,15 +152,19 @@ export default function TravelsMap({
   const [highlightIdx, setHighlightIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Location (forward geocode) search — admin only
-  const [locQuery, setLocQuery] = useState("");
-  const [locResults, setLocResults] = useState<GeoResult[]>([]);
-  const [locOpen, setLocOpen] = useState(false);
-  const [locLoading, setLocLoading] = useState(false);
-  const [locHighlightIdx, setLocHighlightIdx] = useState(-1);
   const locInputRef = useRef<HTMLInputElement>(null);
   const locDropdownRef = useRef<HTMLDivElement>(null);
+
+  const {
+    locQuery,
+    setLocQuery,
+    locResults,
+    locOpen,
+    setLocOpen,
+    locLoading,
+    locHighlightIdx,
+    setLocHighlightIdx,
+  } = useLocationSearch(!!onLocationSelect);
 
   useEffect(() => {
     const fn = () => setFs(!!document.fullscreenElement);
@@ -193,28 +198,7 @@ export default function TravelsMap({
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  useEffect(() => {
-    if (!onLocationSelect) return;
-    const q = locQuery.trim();
-    if (!q) {
-      setLocResults([]);
-      setLocOpen(false);
-      return;
-    }
-    setLocLoading(true);
-    const t = setTimeout(async () => {
-      const results = await forwardGeocode(q);
-      setLocResults(results);
-      setLocOpen(results.length > 0);
-      setLocLoading(false);
-    }, 400);
-    return () => {
-      clearTimeout(t);
-      setLocLoading(false);
-    };
-  }, [locQuery, onLocationSelect]);
+  }, [setLocOpen, setLocHighlightIdx]);
 
   const toggleFs = useCallback(async () => {
     if (!document.fullscreenElement)
@@ -280,11 +264,10 @@ export default function TravelsMap({
       mapRef.current?.flyTo([result.lat, result.lng], 12);
       onLocationSelect?.(result.lat, result.lng);
       setLocQuery("");
-      setLocResults([]);
       setLocOpen(false);
       setLocHighlightIdx(-1);
     },
-    [onLocationSelect],
+    [onLocationSelect, setLocOpen, setLocHighlightIdx, setLocQuery],
   );
 
   const handleLocKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -404,7 +387,7 @@ export default function TravelsMap({
       >
         <MapCapture mapRef={mapRef} />
         <FillWorld trigger={fullscreen} />
-        <MapClickHandler onMapClick={onMapClick} suppress={suppressMapClick} />
+        <MapClickHandler onMapClick={onMapClick} suppressRef={suppressMapClick} />
 
         <TileLayer
           url={CARTO_VOYAGER}

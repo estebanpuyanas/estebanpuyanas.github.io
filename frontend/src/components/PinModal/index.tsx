@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { getPinImages, type PinImage } from "../../services/travelPinService";
+import { useEffect } from "react";
+import { usePinImages } from "../../hooks/usePinImages";
 import "./index.css";
 
 interface Props {
@@ -15,28 +15,8 @@ export default function PinModal({
   country,
   onClose,
 }: Props) {
-  const [images, setImages] = useState<PinImage[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    setCurrent(0);
-    getPinImages(pinId)
-      .then(setImages)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, [pinId]);
-
-  const prev = useCallback(() => {
-    setCurrent((i) => (i - 1 + images.length) % images.length);
-  }, [images.length]);
-
-  const next = useCallback(() => {
-    setCurrent((i) => (i + 1) % images.length);
-  }, [images.length]);
+  const { images, loading, error, current, setCurrent, prev, next } =
+    usePinImages(pinId);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

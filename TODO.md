@@ -5,7 +5,7 @@
 - [ ] Add real way of storing people's recommended tracks. 
 - [ ] Rate limit (?) track recommending to prevent spam.
 - [ ] Add a way to detect already recommended tracks.
-- [ ] Update terminal functionality to navigate pages.
+- [ ] Update terminal functionality to navigate pages: Just missing admin page.
 - [ ] Travel routes between pins:
     - [ ] New `Route` model: `id`, `from_pin_id`, `to_pin_id`, `mode` (plane/boat/car), optional `label`.
     - [ ] New DB table with foreign keys to pins — cascade delete when a referenced pin is deleted.
@@ -13,7 +13,6 @@
 
 
 # Frontend
-- [ ] Increase size of image viewing modal to take up more of the screen.
 - [ ] Add projects from github to projects page.
 - [ ] Fix terminal ascii art it looks so chopped.
 - [ ] Remove cursor from terminal when user has not clicked on terminal. Only become active when user clicks on terminal tile.
@@ -22,7 +21,6 @@
     - [ ] Distinct visual style per mode — e.g. solid line for driving, dashed for boat, dotted + lighter for plane.
     - [ ] Toggle button in map header to show/hide routes (hidden by default to avoid clutter).
     - [ ] Admin panel: new panel mode to create a route — pick from/to from existing pins via dropdowns, select mode, save. Also support deleting routes from the selected-pin panel.
-- [ ] Maybe try sine waves instead of EQ bars to make it less distracting in the music tile.
 
 # Misc
  - [ ] Start thinking about adding blog post stuff.
@@ -30,7 +28,6 @@
  - [ ] Get good at railway deployments or find a better alternative.
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
  - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
- - [ ] Make album for Franchonia Notch.
 
 # Fullstack
 - [ ] GitHub projects page.

@@ -1,84 +1,21 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TravelsMap from "../TravelsMap";
 import {
   createPin,
   deletePin,
-  getPinImages,
-  uploadPinImage,
-  updateImageCaption,
-  deletePinImage,
-  syncPinImages,
-  getCloudinaryFolders,
   updatePinFolder,
   updatePinLocationName,
-  updateImageOrder,
   type Pin,
-  type PinImage,
 } from "../../services/travelPinService";
 import { useTravelPins } from "../../hooks/useTravelPins";
 import { useTheme } from "../../hooks/useTheme";
+import { useAdminAuth, getFunnyError } from "../../hooks/useAdminAuth";
+import { useCloudinaryFolders } from "../../hooks/useCloudinaryFolders";
+import { useAdminPinImages } from "../../hooks/useAdminPinImages";
 import { reverseGeocode } from "../../utils/nominatim";
 import ImageCropModal from "../ImageCropModal";
 import "./index.css";
-
-const TOKEN_KEY = "ep-admin-token";
-
-const FUNNY_ERRORS = [
-  "so close! ...probably not. try again.",
-  "nope. but hey, points for persistence!",
-  "to get the first 10 characters of the token, simply solve: ∫₀^π sin(x²)·e^(x³) dx, then SHA-256 the result. you're welcome.",
-  "have you tried: being me? works every time.",
-  "warm... warmer... nope, cold. very cold.",
-  "you're literally one character off!",
-  "hint: the token contains at least one character. that's all you get.",
-  "error 418: I'm a teapot and you're also wrong.",
-  "our advanced AI has analyzed your submission and determined it is, in fact, not the token.",
-  "at this point the commitment is genuinely impressive. still no.",
-  "token not found in database of valid tokens (there is exactly one valid token).",
-  "maybe the token was the friends we made along the way.",
-  "the token is stored somewhere safe. your brain is not that place.",
-  "fun fact: typing the wrong token 13 times in a row does NOT unlock a secret mode. please stop.",
-  "All this time and determination could have been spent applying to jobs, maybe consider this: https://careers.mcdonalds.com/",
-];
-
-function getFunnyError(attempt: number, snippet: string): string {
-  if (attempt === 3) {
-    return `oh interesting — "${snippet}…" yeah, no.`;
-  }
-  return FUNNY_ERRORS[(attempt - 1) % FUNNY_ERRORS.length];
-}
-
-function getStoredToken(): string {
-  try {
-    return localStorage.getItem(TOKEN_KEY) ?? "";
-  } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV)
-      console.warn("[AdminPage] localStorage read failed");
-    return "";
-  }
-}
-
-function storeToken(t: string) {
-  try {
-    localStorage.setItem(TOKEN_KEY, t);
-  } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV)
-      console.warn("[AdminPage] localStorage write failed");
-  }
-}
-
-function clearToken() {
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV)
-      console.warn("[AdminPage] localStorage delete failed");
-  }
-}
 
 function formatDate(raw: string): string {
   if (!raw) return "";
@@ -103,13 +40,20 @@ export default function AdminPage() {
   const navigate = useNavigate();
   useTheme();
 
-  const [token, setToken] = useState(getStoredToken);
-  const [tokenInput, setTokenInput] = useState("");
-  const [authError, setAuthError] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lastTokenSnippet, setLastTokenSnippet] = useState("");
+  const {
+    token,
+    tokenInput,
+    setTokenInput,
+    authError,
+    failedAttempts,
+    lastTokenSnippet,
+    handleLogin,
+    handleLogout,
+    handleAuthError,
+  } = useAdminAuth(() => navigate("/"));
 
   const { pins, addPin, removePin } = useTravelPins();
+  const { folders } = useCloudinaryFolders(token);
 
   const [panel, setPanel] = useState<PanelState>({ mode: "idle" });
   const [form, setForm] = useState({
@@ -123,21 +67,7 @@ export default function AdminPage() {
   const [submitSuccess, setSubmitSuccess] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  const [folders, setFolders] = useState<string[]>([]);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
-
-  // ── Edit-mode state ───────────────────────────────────────────
-  const [pinImages, setPinImages] = useState<PinImage[]>([]);
-  const [imagesLoading, setImagesLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [editingImage, setEditingImage] = useState<PinImage | null>(null);
-  const [captionDraft, setCaptionDraft] = useState("");
-  const [captionSaving, setCaptionSaving] = useState(false);
-  const [deletingImage, setDeletingImage] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
-  const [cropFile, setCropFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Folder editing state ──────────────────────────────────────
   const [editingFolder, setEditingFolder] = useState(false);
@@ -150,39 +80,52 @@ export default function AdminPage() {
   const [locationNameDraft, setLocationNameDraft] = useState("");
   const [savingLocationName, setSavingLocationName] = useState(false);
 
-  // ── Re-crop (edit existing image) state ───────────────────────
-  const [reEditingImage, setReEditingImage] = useState<PinImage | null>(null);
-  const [fetchingForReEdit, setFetchingForReEdit] = useState(false);
-
-  // ── Drag-and-drop image reordering state ─────────────────────
-  const [draggingPublicId, setDraggingPublicId] = useState<string | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
-  const dragOriginRef = useRef<PinImage[] | null>(null);
-  const dropSucceededRef = useRef(false);
-
-  useEffect(() => {
-    if (!token) return;
-    getCloudinaryFolders(token)
-      .then(setFolders)
-      .catch(() => {});
-  }, [token]);
-
   const editingPinId = panel.mode === "editing" ? panel.pin.id : null;
+  const panelPin = panel.mode === "editing" ? panel.pin : undefined;
+
+  const {
+    pinImages,
+    imagesLoading,
+    uploadingImage,
+    editingImage,
+    setEditingImage,
+    captionDraft,
+    setCaptionDraft,
+    captionSaving,
+    deletingImage,
+    syncing,
+    brokenImages,
+    setBrokenImages,
+    cropFile,
+    setCropFile,
+    setReEditingImage,
+    fetchingForReEdit,
+    draggingPublicId,
+    fileInputRef,
+    handleUploadImage,
+    handleCropConfirm,
+    handleReCropClick,
+    handleSaveCaption,
+    handleDeleteImage,
+    handleSync,
+    handleDragStart,
+    handleDragOver,
+    handleDrop,
+    handleDragEnd,
+  } = useAdminPinImages({
+    editingPinId,
+    panelPin,
+    token,
+    handleAuthError,
+    setSubmitError,
+    setSubmitSuccess,
+  });
+
+  // Reset UI-only editing state when the active pin changes
   useEffect(() => {
-    if (!editingPinId) {
-      setPinImages([]);
-      setBrokenImages(new Set());
-      setEditingFolder(false);
-      setEditingLocationName(false);
-      return;
-    }
-    setImagesLoading(true);
-    setBrokenImages(new Set());
+    setEditingFolder(false);
+    setEditingLocationName(false);
     setSubmitSuccess("");
-    getPinImages(editingPinId)
-      .then(setPinImages)
-      .catch(() => {})
-      .finally(() => setImagesLoading(false));
   }, [editingPinId]);
 
   const markers = pins.map((p) => ({
@@ -192,29 +135,6 @@ export default function AdminPage() {
     lng: p.longitude,
     photos: p.images.map((i) => i.cloudinarySecureUrl),
   }));
-
-  // ── Auth ──────────────────────────────────────────────────────
-  const handleLogin = () => {
-    if (!tokenInput.trim()) return;
-    storeToken(tokenInput.trim());
-    setToken(tokenInput.trim());
-    setTokenInput("");
-    setAuthError(false);
-  };
-
-  const handleLogout = () => {
-    clearToken();
-    setToken("");
-    navigate("/");
-  };
-
-  const handleAuthError = () => {
-    setLastTokenSnippet(token.slice(0, 6));
-    clearToken();
-    setToken("");
-    setAuthError(true);
-    setFailedAttempts((n) => n + 1);
-  };
 
   // ── Map interactions ──────────────────────────────────────────
   const handleMapClick = async (lat: number, lng: number) => {
@@ -304,84 +224,6 @@ export default function AdminPage() {
     }
   };
 
-  // ── Image upload ──────────────────────────────────────────────
-  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || panel.mode !== "editing") return;
-    e.target.value = "";
-    setCropFile(file);
-  };
-
-  const handleCropConfirm = async (blob: Blob) => {
-    if (panel.mode !== "editing") return;
-    const origFile = cropFile;
-    const reCropTarget = reEditingImage;
-    setCropFile(null);
-    setReEditingImage(null);
-    setUploadingImage(true);
-    setSubmitError("");
-
-    if (reCropTarget) {
-      // Replace an existing image: upload new, copy caption, delete old
-      try {
-        const file = new File([blob], "recrop.jpg", { type: blob.type });
-        let newImg = await uploadPinImage(panel.pin.id, file, token);
-        if (reCropTarget.caption) {
-          try {
-            await updateImageCaption(
-              panel.pin.id,
-              newImg.cloudinaryPublicId,
-              reCropTarget.caption,
-              token,
-            );
-            newImg = { ...newImg, caption: reCropTarget.caption };
-          } catch {
-            /* caption copy failed — continue */
-          }
-        }
-        await deletePinImage(
-          panel.pin.id,
-          reCropTarget.cloudinaryPublicId,
-          token,
-        );
-        const newList = pinImages.map((img) =>
-          img.cloudinaryPublicId === reCropTarget.cloudinaryPublicId
-            ? newImg
-            : img,
-        );
-        setPinImages(newList);
-        // Persist sort order so the re-cropped image keeps its position
-        await updateImageOrder(
-          panel.pin.id,
-          newList.map((i) => i.cloudinaryPublicId),
-          token,
-        );
-        setSubmitSuccess("image updated.");
-      } catch (err) {
-        if (err instanceof Error && err.message === "unauthorized")
-          handleAuthError();
-        else setSubmitError("Failed to re-crop image.");
-      } finally {
-        setUploadingImage(false);
-      }
-    } else {
-      // New upload
-      try {
-        const file = new File([blob], origFile?.name ?? "upload.jpg", {
-          type: blob.type,
-        });
-        const img = await uploadPinImage(panel.pin.id, file, token);
-        setPinImages((prev) => [...prev, img]);
-      } catch (err) {
-        if (err instanceof Error && err.message === "unauthorized")
-          handleAuthError();
-        else setSubmitError("Failed to upload image.");
-      } finally {
-        setUploadingImage(false);
-      }
-    }
-  };
-
   // ── Folder update ─────────────────────────────────────────────
   const handleSaveFolder = async () => {
     if (panel.mode !== "editing") return;
@@ -435,153 +277,6 @@ export default function AdminPage() {
       else setSubmitError("Failed to update location name.");
     } finally {
       setSavingLocationName(false);
-    }
-  };
-
-  // ── Drag-and-drop handlers ────────────────────────────────────
-  const handleDragStart = useCallback((index: number, publicId: string) => {
-    dragIndexRef.current = index;
-    dragOriginRef.current = [...pinImages];
-    dropSucceededRef.current = false;
-    setDraggingPublicId(publicId);
-  }, [pinImages]);
-
-  const handleDragOver = useCallback((e: React.DragEvent, targetIndex: number) => {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null || fromIndex === targetIndex) return;
-    setPinImages((prev) => {
-      const imgs = [...prev];
-      const [item] = imgs.splice(fromIndex, 1);
-      imgs.splice(targetIndex, 0, item);
-      dragIndexRef.current = targetIndex;
-      return imgs;
-    });
-  }, []);
-
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    dropSucceededRef.current = true;
-    if (panel.mode !== "editing") return;
-    try {
-      await updateImageOrder(
-        panel.pin.id,
-        pinImages.map((img) => img.cloudinaryPublicId),
-        token,
-      );
-      dragOriginRef.current = null;
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized") handleAuthError();
-      else if (dragOriginRef.current) setPinImages(dragOriginRef.current);
-    }
-    setDraggingPublicId(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panel, pinImages, token]);
-
-  const handleDragEnd = useCallback(() => {
-    if (!dropSucceededRef.current && dragOriginRef.current) {
-      setPinImages(dragOriginRef.current);
-    }
-    dragIndexRef.current = null;
-    dragOriginRef.current = null;
-    setDraggingPublicId(null);
-  }, []);
-
-  // ── Re-crop an existing image ─────────────────────────────────
-  const handleReCropClick = async () => {
-    if (!editingImage) return;
-    setFetchingForReEdit(true);
-    setSubmitError("");
-    try {
-      const resp = await fetch(editingImage.cloudinarySecureUrl);
-      const blob = await resp.blob();
-      const file = new File([blob], "recrop.jpg", {
-        type: blob.type || "image/jpeg",
-      });
-      setReEditingImage(editingImage);
-      setEditingImage(null);
-      setCropFile(file);
-    } catch {
-      setSubmitError("Failed to load image for editing.");
-    } finally {
-      setFetchingForReEdit(false);
-    }
-  };
-
-  // ── Caption save ──────────────────────────────────────────────
-  const handleSaveCaption = async () => {
-    if (!editingImage || panel.mode !== "editing") return;
-    setCaptionSaving(true);
-    try {
-      await updateImageCaption(
-        panel.pin.id,
-        editingImage.cloudinaryPublicId,
-        captionDraft,
-        token,
-      );
-      setPinImages((prev) =>
-        prev.map((img) =>
-          img.cloudinaryPublicId === editingImage.cloudinaryPublicId
-            ? { ...img, caption: captionDraft }
-            : img,
-        ),
-      );
-      setEditingImage(null);
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized")
-        handleAuthError();
-    } finally {
-      setCaptionSaving(false);
-    }
-  };
-
-  // ── Image delete ──────────────────────────────────────────────
-  const handleDeleteImage = async () => {
-    if (!editingImage || panel.mode !== "editing") return;
-    if (!window.confirm("Delete this image? This cannot be undone.")) return;
-    setDeletingImage(true);
-    try {
-      await deletePinImage(
-        panel.pin.id,
-        editingImage.cloudinaryPublicId,
-        token,
-      );
-      setPinImages((prev) =>
-        prev.filter(
-          (img) => img.cloudinaryPublicId !== editingImage.cloudinaryPublicId,
-        ),
-      );
-      setEditingImage(null);
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized")
-        handleAuthError();
-      else setSubmitError("Failed to delete image.");
-    } finally {
-      setDeletingImage(false);
-    }
-  };
-
-  // ── Sync with Cloudinary ──────────────────────────────────────
-  const handleSync = async () => {
-    if (panel.mode !== "editing") return;
-    setSyncing(true);
-    setSubmitError("");
-    try {
-      const pruned = await syncPinImages(panel.pin.id, token);
-      // Re-fetch images so the list reflects reality
-      const fresh = await getPinImages(panel.pin.id);
-      setPinImages(fresh);
-      setBrokenImages(new Set());
-      if (pruned > 0)
-        setSubmitSuccess(
-          `Synced! Removed ${pruned} deleted image${pruned === 1 ? "" : "s"}.`,
-        );
-    } catch (err) {
-      if (err instanceof Error && err.message === "unauthorized")
-        handleAuthError();
-      else setSubmitError("Sync failed. Please try again.");
-    } finally {
-      setSyncing(false);
     }
   };
 

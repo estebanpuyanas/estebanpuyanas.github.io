@@ -99,7 +99,13 @@
   margin-left: 1px;
   vertical-align: text-bottom;
   flex-shrink: 0;
+  opacity: 0;
   animation: termBlink 1.1s step-end infinite;
+  animation-play-state: paused;
+}
+
+.terminal-cursor--active {
+  animation-play-state: running;
 }
 
 @keyframes termBlink {
