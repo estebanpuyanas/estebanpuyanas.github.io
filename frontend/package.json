@@ -14,6 +14,7 @@
     "countries-list": "^3.3.0",
     "leaflet": "^1.9.4",
     "react": "^19.2.0",
+    "react-activity-calendar": "^3.2.0",
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.7",
     "react-leaflet": "^5.0.0",

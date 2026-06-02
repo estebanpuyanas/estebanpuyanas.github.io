@@ -1,47 +1,27 @@
 import type { ReactElement } from "react";
-import { useChess, type HeatmapCell } from "../../hooks/useChess";
+import { ActivityCalendar } from "react-activity-calendar";
+import { useChess } from "../../hooks/useChess";
 import type { LichessGame } from "../../services/lichessService";
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-const CELL_STRIDE = 13;
-
-function cellColor(cell: HeatmapCell): string {
-  if (cell.future) return "transparent";
-  if (cell.count === 0) return "var(--bg-3)";
-  if (cell.count <= 2) return "var(--chess-heat-1)";
-  if (cell.count <= 5) return "var(--chess-heat-2)";
-  if (cell.count <= 9) return "var(--chess-heat-3)";
-  return "var(--accent)";
-}
-
-function getMonthLabels(
-  weeks: HeatmapCell[][],
-): { idx: number; label: string }[] {
-  const out: { idx: number; label: string }[] = [];
-  let lastMonth = -1;
-  weeks.forEach((week, i) => {
-    const m = new Date(week[0].date + "T12:00:00").getMonth();
-    if (m !== lastMonth) {
-      out.push({ idx: i, label: MONTHS[m] });
-      lastMonth = m;
-    }
-  });
-  return out;
-}
+// CSS variables used here adapt to light/dark via [data-theme] in index.css.
+// Both arrays are identical so the resolved CSS var is always correct regardless
+// of which colorScheme branch the library picks internally.
+const CALENDAR_THEME = {
+  dark: [
+    "var(--bg-3)",
+    "var(--chess-heat-1)",
+    "var(--chess-heat-2)",
+    "var(--chess-heat-3)",
+    "var(--accent)",
+  ] as [string, string, string, string, string],
+  light: [
+    "var(--bg-3)",
+    "var(--chess-heat-1)",
+    "var(--chess-heat-2)",
+    "var(--chess-heat-3)",
+    "var(--accent)",
+  ] as [string, string, string, string, string],
+};
 
 /* ── Time-control icons ─────────────────────────────────────── */
 
@@ -227,14 +207,13 @@ function GameCard({
 const VITE_USERNAME = import.meta.env.VITE_LICHESS_USERNAME as string;
 
 export default function ChessTile() {
-  const { user, heatmap, recentGames, loading, error } = useChess();
-  const labels = heatmap.length ? getMonthLabels(heatmap) : [];
+  const { user, activityData, recentGames, loading, error } = useChess();
 
   return (
     <div className="bento-tile bento-chess">
       {/* ── Top body: heatmap + game cards ── */}
       <div className="bento-chess-body">
-        {/* Left: heatmap */}
+        {/* Left: activity calendar */}
         <div className="bento-chess-heatmap-section">
           <div className="bento-chess-heatmap-header">
             <span className="bento-label" style={{ padding: 0 }}>
@@ -248,63 +227,23 @@ export default function ChessTile() {
           </div>
 
           <div className="bento-heatmap-scroll">
-            <div className="bento-heatmap-layout">
-              <div className="bento-heatmap-days">
-                {["M", "", "W", "", "F", "", "S"].map((d, i) => (
-                  <span key={i} className="bento-heatmap-day">
-                    {d}
-                  </span>
-                ))}
-              </div>
-
-              <div className="bento-heatmap-weeks-col">
-                <div className="bento-heatmap-months">
-                  {labels.map(({ idx, label }) => (
-                    <span
-                      key={idx}
-                      className="bento-heatmap-month"
-                      style={{ left: `${idx * CELL_STRIDE}px` }}
-                    >
-                      {label}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="bento-heatmap-grid">
-                  {(loading
-                    ? Array.from({ length: 53 }, () =>
-                        Array.from({ length: 7 }, (_, d) => ({
-                          date: "",
-                          count: 0,
-                          future: false,
-                          skeleton: true,
-                          _d: d,
-                        })),
-                      )
-                    : heatmap
-                  ).map((week, wi) => (
-                    <div key={wi} className="bento-heatmap-week">
-                      {week.map((cell, di) => (
-                        <div
-                          key={di}
-                          className={`bento-heatmap-cell${"skeleton" in cell && cell.skeleton ? " bento-heatmap-cell--skeleton" : ""}`}
-                          style={
-                            "skeleton" in cell && cell.skeleton
-                              ? undefined
-                              : { background: cellColor(cell as HeatmapCell) }
-                          }
-                          title={
-                            "skeleton" in cell || (cell as HeatmapCell).future
-                              ? undefined
-                              : `${(cell as HeatmapCell).date}: ${(cell as HeatmapCell).count} game${(cell as HeatmapCell).count !== 1 ? "s" : ""}`
-                          }
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <ActivityCalendar
+              data={activityData}
+              loading={loading}
+              theme={CALENDAR_THEME}
+              colorScheme="dark"
+              blockSize={10}
+              blockGap={2}
+              blockRadius={2}
+              fontSize={10}
+              hideColorLegend
+              hideTotalCount
+              showWeekdayLabels
+              labels={{
+                weekdays: ["S", "M", "T", "W", "T", "F", "S"],
+              }}
+              style={{ fontFamily: "var(--font-mono)" }}
+            />
           </div>
         </div>
 

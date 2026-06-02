@@ -414,7 +414,7 @@
   flex-direction: column;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
-  padding: 0.6rem 0 0.4rem;
+  padding: 0.4rem 0 0.25rem;
   min-width: 0;
 }
 
@@ -435,7 +435,7 @@
   white-space: nowrap;
 }
 
-/* ─── Heatmap scroll ─────────────────────────────────────────── */
+/* ─── Heatmap scroll (react-activity-calendar wrapper) ──────── */
 .bento-heatmap-scroll {
   overflow-x: auto;
   overflow-y: hidden;
@@ -445,88 +445,10 @@
   scrollbar-color: var(--border-light) transparent;
 }
 
-.bento-heatmap-layout {
-  display: flex;
-  gap: 4px;
-  align-items: flex-start;
-  width: max-content;
-}
-
-.bento-heatmap-days {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: 18px;
-  flex-shrink: 0;
-  width: 14px;
-}
-
-.bento-heatmap-day {
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  color: var(--text-3);
-  height: 11px;
-  line-height: 11px;
-  display: block;
-  text-align: right;
-}
-
-.bento-heatmap-weeks-col {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.bento-heatmap-months {
-  position: relative;
-  height: 15px;
-  flex-shrink: 0;
-}
-
-.bento-heatmap-month {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  color: var(--text-3);
-  line-height: 15px;
-  white-space: nowrap;
-  letter-spacing: 0.04em;
-}
-
-.bento-heatmap-grid {
-  display: flex;
-  gap: 2px;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-}
-
-.bento-heatmap-week {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex-shrink: 0;
-  width: 11px;
-  align-items: flex-start;
-}
-
-.bento-heatmap-cell {
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-  flex-shrink: 0;
-  flex-grow: 0;
-  display: block;
-  box-sizing: border-box;
-  transition: opacity 0.1s;
-}
-
-.bento-heatmap-cell:hover {
-  opacity: 0.75;
-}
-
-.bento-heatmap-cell--skeleton {
-  background: var(--bg-3);
-  animation: pulse 1.6s ease-in-out infinite;
+/* Override library label text to match project typography */
+.bento-heatmap-scroll text {
+  font-family: var(--font-mono) !important;
+  fill: var(--text-3) !important;
 }
 
 /* ── Recent games (right column, horizontal cards) ─────────── */
