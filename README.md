@@ -114,6 +114,28 @@ backend/
 
 ---
 
+## Data migration (SQLite → Neon Postgres)
+
+`backend/cmd/migrate/main.go` is a one-shot migration tool. Use it if/when the backend storage layer moves from SQLite to Neon Postgres.
+
+```bash
+# 1. Build the tool (lands in backend/bin/migrate, which is gitignored)
+make migrate-build
+
+# 2. Set your Neon connection string
+export NEON_DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/personal-website?sslmode=require"
+
+# 3. Run from backend/ so the default --sqlite path resolves
+cd backend && ../bin/migrate        # or: ./bin/migrate --sqlite /custom/path.db
+
+# 4. Clean up when done
+make clean
+```
+
+The tool creates the schema if it doesn't exist, then copies all rows from `travel_pins`, `pin_images`, and `blog_posts`. It uses `ON CONFLICT DO NOTHING`, so re-running is safe. See `AGENTS.md` for the full checklist.
+
+---
+
 ## Deployment (Railway)
 
 Two Railway services from the same GitHub repo, each using Railpack (configured via `railway.toml`):

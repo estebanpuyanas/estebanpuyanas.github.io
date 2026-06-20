@@ -236,14 +236,31 @@ export default function ChessTile() {
               blockGap={2}
               blockRadius={2}
               fontSize={10}
-              hideColorLegend
-              hideTotalCount
               showWeekdayLabels
-              labels={{
-                weekdays: ["S", "M", "T", "W", "T", "F", "S"],
-              }}
+              showColorLegend={false}
+              showTotalCount={false}
+              labels={{ weekdays: ["S", "M", "T", "W", "T", "F", "S"] }}
               style={{ fontFamily: "var(--font-mono)" }}
             />
+          </div>
+
+          {/* Legend sits outside the scroll wrapper so it can never be clipped by it */}
+          <div className="bento-heatmap-footer">
+            <span className="bento-heatmap-footer-label">Less</span>
+            {([0, 1, 2, 3, 4] as const).map((l) => (
+              <span
+                key={l}
+                className={`bento-heatmap-legend-block bento-heatmap-legend-block--${l}`}
+              />
+            ))}
+            <span className="bento-heatmap-footer-label">More</span>
+            <span className="bento-heatmap-footer-spacer" />
+            {!loading && !error && (
+              <span className="bento-heatmap-footer-label">
+                {activityData.reduce((s, d) => s + d.count, 0).toLocaleString()}{" "}
+                games this year
+              </span>
+            )}
           </div>
         </div>
 
