@@ -1,6 +1,6 @@
 AIR := $(shell cd backend && go env GOPATH)/bin/air
 
-.PHONY: help backend frontend dev restart build lint vet typecheck format clean migrate-build
+.PHONY: help backend frontend dev restart build build-backend build-frontend lint vet typecheck format clean migrate-build
 
 help:
 	@echo "Usage: make [target]"
@@ -12,7 +12,9 @@ help:
 	@echo "  restart        Rebuild and restart the running backend"
 	@echo ""
 	@echo "Build:"
-	@echo "  build          Build production-ready deployment"
+	@echo "  build          Build both backend and frontend for production"
+	@echo "  build-backend  Build only the backend Go binary (for Render web service)"
+	@echo "  build-frontend Build only the frontend (for Render static site)"
 	@echo "  migrate-build  Build the SQLite→Postgres migration tool (outputs backend/bin/migrate)"
 	@echo ""
 	@echo "Checks:"
@@ -43,9 +45,17 @@ restart:
 	cd backend && go build -o ./bin/api . && pkill -f './bin/api' 2>/dev/null || true && ./bin/api &
 
 build:
-	@echo "Building production-ready deployment..."
+	@echo "Building both backend and frontend for production..."
 	cd backend && go build -o bin/api . && \
 	cd ../frontend && npm install && npm run build
+
+build-backend:
+	@echo "Building backend Go binary..."
+	cd backend && go build -o bin/api .
+
+build-frontend:
+	@echo "Building frontend for production..."
+	cd frontend && npm install && npm run build
 
 lint:
 	@echo "Linting frontend..."
