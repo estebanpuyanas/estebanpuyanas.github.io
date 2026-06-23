@@ -24,11 +24,11 @@ func main() {
 		log.Fatal("LASTFM_API_KEY and LASTFM_USERNAME must be set")
 	}
 
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./travels.db"
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		log.Fatal("DATABASE_URL must be set")
 	}
-	database, err := db.Open(dbPath)
+	database, err := db.Open(dbURL)
 	if err != nil {
 		log.Fatalf("failed to open database: %v", err)
 	}
