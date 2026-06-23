@@ -2,7 +2,9 @@
 //
 // Usage:
 //
-//	NEON_DATABASE_URL="postgresql://..." go run ./cmd/migrate [--sqlite ./travels.db]
+//	go run ./cmd/migrate [--sqlite ./travels.db]
+//
+// Reads NEON_DATABASE_URL from .env or the environment.
 package main
 
 import (
@@ -15,6 +17,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/joho/godotenv"
 	_ "modernc.org/sqlite"
 )
 
@@ -53,6 +56,10 @@ CREATE TABLE IF NOT EXISTS blog_posts (
 func main() {
 	sqlitePath := flag.String("sqlite", "travels.db", "path to the SQLite database file")
 	flag.Parse()
+
+	if err := godotenv.Load(); err != nil {
+		log.Println("no .env file found, reading from environment")
+	}
 
 	neonURL := os.Getenv("NEON_DATABASE_URL")
 	if neonURL == "" {

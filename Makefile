@@ -1,6 +1,6 @@
 AIR := $(shell cd backend && go env GOPATH)/bin/air
 
-.PHONY: help backend frontend dev restart build build-backend build-frontend lint vet typecheck format clean migrate-build
+.PHONY: help backend frontend dev restart build build-backend build-frontend lint vet typecheck format clean migrate-build migrate
 
 help:
 	@echo "Usage: make [target]"
@@ -15,7 +15,8 @@ help:
 	@echo "  build          Build both backend and frontend for production"
 	@echo "  build-backend  Build only the backend Go binary (for Render web service)"
 	@echo "  build-frontend Build only the frontend (for Render static site)"
-	@echo "  migrate-build  Build the SQLite→Postgres migration tool (outputs backend/bin/migrate)"
+	@echo "  migrate        Run the SQLite→Postgres migration (reads NEON_DATABASE_URL from backend/.env)"
+	@echo "  migrate-build  Build the migration tool binary (outputs backend/bin/migrate)"
 	@echo ""
 	@echo "Checks:"
 	@echo "  lint           Run ESLint on the frontend"
@@ -74,6 +75,10 @@ format:
 typecheck:
 	@echo "Type checking frontend..."
 	cd frontend && npx tsc --noEmit
+
+migrate:
+	@echo "Running SQLite→Postgres migration..."
+	cd backend && go run ./cmd/migrate --sqlite ./travels.db
 
 migrate-build:
 	@echo "Building SQLite→Postgres migration tool..."

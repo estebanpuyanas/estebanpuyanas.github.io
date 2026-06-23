@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -49,7 +50,7 @@ func (s *TravelPinService) GetAllPins(ctx context.Context) ([]model.TravelPin, e
 
 func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model.Image, error) {
 	var folder string
-	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, id).Scan(&folder)
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = $1`, id).Scan(&folder)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("pin not found")
 	}
@@ -59,7 +60,7 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT public_id, secure_url, caption, uploaded_at
-		FROM pin_images WHERE pin_id = ? ORDER BY sort_order ASC, uploaded_at ASC`, id)
+		FROM pin_images WHERE pin_id = $1 ORDER BY sort_order ASC, uploaded_at ASC`, id)
 	if err != nil {
 		return nil, fmt.Errorf("query images: %w", err)
 	}
@@ -69,9 +70,11 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 	for rows.Next() {
 		var img model.Image
 		var secureURL string
-		if err := rows.Scan(&img.CloudinaryPublicID, &secureURL, &img.Caption, &img.UploadedAt); err != nil {
+		var uploadedAt time.Time
+		if err := rows.Scan(&img.CloudinaryPublicID, &secureURL, &img.Caption, &uploadedAt); err != nil {
 			return nil, fmt.Errorf("scan image: %w", err)
 		}
+		img.UploadedAt = uploadedAt.Format(time.RFC3339)
 		if secureURL != "" {
 			img.CloudinarySecureURL = secureURL
 		} else if s.cloudinary != nil {
@@ -89,7 +92,7 @@ func (s *TravelPinService) GetPinImages(ctx context.Context, id string) ([]model
 }
 
 func (s *TravelPinService) DeletePin(ctx context.Context, id string) error {
-	result, err := s.db.ExecContext(ctx, `DELETE FROM travel_pins WHERE id = ?`, id)
+	result, err := s.db.ExecContext(ctx, `DELETE FROM travel_pins WHERE id = $1`, id)
 	if err != nil {
 		return fmt.Errorf("delete pin: %w", err)
 	}
@@ -111,7 +114,7 @@ func (s *TravelPinService) CreatePin(ctx context.Context, req model.CreatePinReq
 	id := uuid.New().String()
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO travel_pins (id, location_name, country, latitude, longitude, cloudinary_folder)
-		VALUES (?, ?, ?, ?, ?, ?)`,
+		VALUES ($1, $2, $3, $4, $5, $6)`,
 		id, req.LocationName, req.Country, req.Latitude, req.Longitude, req.CloudinaryFolder)
 	if err != nil {
 		return model.TravelPin{}, fmt.Errorf("insert pin: %w", err)
@@ -128,7 +131,7 @@ func (s *TravelPinService) CreatePin(ctx context.Context, req model.CreatePinReq
 
 func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file io.Reader) (*model.Image, error) {
 	var folder string
-	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, id).Scan(&folder)
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = $1`, id).Scan(&folder)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("pin not found")
 	}
@@ -146,16 +149,22 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 
 	var maxOrder int
 	_ = s.db.QueryRowContext(ctx,
-		`SELECT COALESCE(MAX(sort_order), -1) FROM pin_images WHERE pin_id = ?`, id).Scan(&maxOrder)
+		`SELECT COALESCE(MAX(sort_order), -1) FROM pin_images WHERE pin_id = $1`, id).Scan(&maxOrder)
 
 	_, dbErr := s.db.ExecContext(ctx,
-		`INSERT OR IGNORE INTO pin_images (public_id, pin_id, secure_url, caption, sort_order) VALUES (?, ?, ?, '', ?)`,
+		`INSERT INTO pin_images (public_id, pin_id, secure_url, caption, sort_order)
+		 VALUES ($1, $2, $3, '', $4)
+		 ON CONFLICT (public_id) DO NOTHING`,
 		img.CloudinaryPublicID, id, img.CloudinarySecureURL, maxOrder+1)
 	if dbErr == nil {
+		var uploadedAt time.Time
 		_ = s.db.QueryRowContext(ctx,
-			`SELECT uploaded_at FROM pin_images WHERE public_id = ?`,
+			`SELECT uploaded_at FROM pin_images WHERE public_id = $1`,
 			img.CloudinaryPublicID,
-		).Scan(&img.UploadedAt)
+		).Scan(&uploadedAt)
+		if !uploadedAt.IsZero() {
+			img.UploadedAt = uploadedAt.Format(time.RFC3339)
+		}
 	}
 
 	return img, nil
@@ -164,33 +173,31 @@ func (s *TravelPinService) UploadPinImage(ctx context.Context, id string, file i
 func (s *TravelPinService) DeletePinImage(ctx context.Context, pinID, publicID string) error {
 	var count int
 	err := s.db.QueryRowContext(ctx,
-		`SELECT COUNT(*) FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+		`SELECT COUNT(*) FROM pin_images WHERE public_id = $1 AND pin_id = $2`,
 		publicID, pinID).Scan(&count)
 	if err != nil || count == 0 {
 		return fmt.Errorf("image not found")
 	}
 	if s.cloudinary != nil {
-		// ignore error: "not found" from Cloudinary means already deleted
 		_ = s.cloudinary.DeleteImage(ctx, publicID)
 	}
 	_, err = s.db.ExecContext(ctx,
-		`DELETE FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+		`DELETE FROM pin_images WHERE public_id = $1 AND pin_id = $2`,
 		publicID, pinID)
 	return err
 }
 
 // SyncPinImages checks each DB image record with a HEAD request to its
 // Cloudinary CDN URL and removes records for assets that return 404.
-// This avoids the unreliable Cloudinary Admin API entirely.
 func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int, error) {
 	var exists int
-	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = ?`, pinID).Scan(&exists)
+	err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = $1`, pinID).Scan(&exists)
 	if err != nil || exists == 0 {
 		return 0, fmt.Errorf("pin not found")
 	}
 
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT public_id, secure_url FROM pin_images WHERE pin_id = ?`, pinID)
+		`SELECT public_id, secure_url FROM pin_images WHERE pin_id = $1`, pinID)
 	if err != nil {
 		return 0, fmt.Errorf("query images: %w", err)
 	}
@@ -227,7 +234,7 @@ func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			continue // network error — skip, don't assume deleted
+			continue
 		}
 		resp.Body.Close()
 		if resp.StatusCode == http.StatusNotFound {
@@ -237,17 +244,13 @@ func (s *TravelPinService) SyncPinImages(ctx context.Context, pinID string) (int
 
 	for _, pubID := range stale {
 		_, _ = s.db.ExecContext(ctx,
-			`DELETE FROM pin_images WHERE public_id = ? AND pin_id = ?`,
+			`DELETE FROM pin_images WHERE public_id = $1 AND pin_id = $2`,
 			pubID, pinID)
 	}
 	return len(stale), nil
 }
 
 // MoveFolder renames a pin's Cloudinary folder and updates all DB records.
-// Paths are normalized (trailing slashes stripped).
-// Tries Admin.RenameFolder atomically; if the source folder isn't found in
-// Cloudinary (dynamic-folder mode or no images uploaded yet) falls back to
-// per-image Upload.Rename for each tracked image.
 func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder string) error {
 	newFolder = strings.Trim(newFolder, "/")
 	if newFolder == "" {
@@ -255,7 +258,7 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 	}
 
 	var oldFolder string
-	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = ?`, pinID).Scan(&oldFolder)
+	err := s.db.QueryRowContext(ctx, `SELECT cloudinary_folder FROM travel_pins WHERE id = $1`, pinID).Scan(&oldFolder)
 	if err == sql.ErrNoRows {
 		return fmt.Errorf("pin not found")
 	}
@@ -267,7 +270,7 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 		return nil
 	}
 
-	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = ?`, pinID)
+	rows, err := s.db.QueryContext(ctx, `SELECT public_id FROM pin_images WHERE pin_id = $1`, pinID)
 	if err != nil {
 		return fmt.Errorf("query images: %w", err)
 	}
@@ -286,7 +289,6 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 			if !errors.Is(folderErr, cloudinary.ErrFolderNotFound) {
 				return fmt.Errorf("cloudinary rename folder: %w", folderErr)
 			}
-			// Folder not found — fall back to per-image rename for tracked images.
 			log.Printf("MoveFolder: folder %q not found in Cloudinary, renaming per-image", oldFolder)
 			for _, oldID := range publicIDs {
 				suffix := strings.TrimPrefix(oldID, oldFolder+"/")
@@ -315,17 +317,17 @@ func (s *TravelPinService) MoveFolder(ctx context.Context, pinID, newFolder stri
 		newID := newFolder + "/" + suffix
 		newURL := "https://res.cloudinary.com/" + cloudName + "/image/upload/" + newID
 		_, _ = s.db.ExecContext(ctx,
-			`UPDATE pin_images SET public_id = ?, secure_url = ? WHERE public_id = ? AND pin_id = ?`,
+			`UPDATE pin_images SET public_id = $1, secure_url = $2 WHERE public_id = $3 AND pin_id = $4`,
 			newID, newURL, oldID, pinID)
 	}
 
-	_, err = s.db.ExecContext(ctx, `UPDATE travel_pins SET cloudinary_folder = ? WHERE id = ?`, newFolder, pinID)
+	_, err = s.db.ExecContext(ctx, `UPDATE travel_pins SET cloudinary_folder = $1 WHERE id = $2`, newFolder, pinID)
 	return err
 }
 
 func (s *TravelPinService) UpdateImageOrder(ctx context.Context, pinID string, publicIDs []string) error {
 	var count int
-	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = ?`, pinID).Scan(&count); err != nil || count == 0 {
+	if err := s.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM travel_pins WHERE id = $1`, pinID).Scan(&count); err != nil || count == 0 {
 		return fmt.Errorf("pin not found")
 	}
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -335,7 +337,7 @@ func (s *TravelPinService) UpdateImageOrder(ctx context.Context, pinID string, p
 	defer tx.Rollback()
 	for i, pubID := range publicIDs {
 		if _, err := tx.ExecContext(ctx,
-			`UPDATE pin_images SET sort_order = ? WHERE public_id = ? AND pin_id = ?`,
+			`UPDATE pin_images SET sort_order = $1 WHERE public_id = $2 AND pin_id = $3`,
 			i, pubID, pinID); err != nil {
 			return fmt.Errorf("update sort_order: %w", err)
 		}
@@ -345,7 +347,7 @@ func (s *TravelPinService) UpdateImageOrder(ctx context.Context, pinID string, p
 
 func (s *TravelPinService) UpdateLocationName(ctx context.Context, pinID, locationName string) error {
 	result, err := s.db.ExecContext(ctx,
-		`UPDATE travel_pins SET location_name = ? WHERE id = ?`,
+		`UPDATE travel_pins SET location_name = $1 WHERE id = $2`,
 		locationName, pinID)
 	if err != nil {
 		return fmt.Errorf("update location name: %w", err)
@@ -359,7 +361,7 @@ func (s *TravelPinService) UpdateLocationName(ctx context.Context, pinID, locati
 
 func (s *TravelPinService) UpdatePinImageCaption(ctx context.Context, pinID, publicID, caption string) error {
 	result, err := s.db.ExecContext(ctx,
-		`UPDATE pin_images SET caption = ? WHERE public_id = ? AND pin_id = ?`,
+		`UPDATE pin_images SET caption = $1 WHERE public_id = $2 AND pin_id = $3`,
 		caption, publicID, pinID)
 	if err != nil {
 		return fmt.Errorf("update caption: %w", err)
