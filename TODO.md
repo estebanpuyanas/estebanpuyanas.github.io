@@ -19,8 +19,6 @@
     - [ ] Admin panel: new panel mode to create a route — pick from/to from existing pins via dropdowns, select mode, save. Also support deleting routes from the selected-pin panel.
 
 # Misc
- - [ ] Check out Neon for DB instead of SQLite.
- - [ ] Get good at railway deployments or find a better alternative.
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
  - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
 
