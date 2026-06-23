@@ -1,8 +1,0 @@
-[build]
-builder = "railpack"
-
-[deploy]
-healthcheckPath = "/api/travel/pins"
-healthcheckTimeout = 120
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10

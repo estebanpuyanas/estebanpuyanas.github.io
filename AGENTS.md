@@ -146,6 +146,45 @@ In production (Railway), set `DB_PATH=/data/travels.db` and attach a Railway Vol
 
 ---
 
+## Data Migration (SQLite → Neon Postgres)
+
+`backend/cmd/migrate/main.go` is a one-shot tool for migrating all data from the local SQLite `travels.db` into a Neon Postgres database. Run it **once** when switching the backend's storage layer from SQLite to Postgres.
+
+### When to use
+
+Only when intentionally moving the production database to Neon. Do **not** run this against a Postgres DB that already has live data without confirming the target tables are empty first (inserts use `ON CONFLICT DO NOTHING`, so re-running is safe but will not overwrite existing rows).
+
+### Prerequisites
+
+1. Create a Neon project and a database named `personal-website` via the Neon dashboard.
+2. Copy the connection string (format: `postgresql://user:password@ep-xxx.region.aws.neon.tech/personal-website?sslmode=require`).
+3. Add `NEON_DATABASE_URL=<connection string>` to `backend/.env` (or export it in the shell).
+
+### Running the migration
+
+```bash
+# Build the tool (outputs to backend/bin/migrate, which is gitignored)
+make migrate-build
+
+# Run from the backend directory so the default --sqlite path resolves correctly
+cd backend
+NEON_DATABASE_URL="postgresql://..." ./bin/migrate
+
+# Or point at a different SQLite file
+NEON_DATABASE_URL="postgresql://..." ./bin/migrate --sqlite /path/to/travels.db
+
+# Clean up the binary when done
+make clean
+```
+
+### What it does
+
+1. Creates the schema in Postgres if tables do not yet exist (`travel_pins`, `pin_images`, `blog_posts`).
+2. Copies all rows from SQLite, converting types where needed (`REAL` → `DOUBLE PRECISION`, `INTEGER` published flag → `BOOLEAN`, `DATETIME` strings → `TIMESTAMPTZ`).
+3. Uses `ON CONFLICT DO NOTHING` — safe to re-run; existing rows are left untouched.
+
+---
+
 ## Deployment (Railway + Railpack)
 
 Each service has a `railway.toml` at its root that sets `builder = "railpack"`. Railpack auto-detects the language and build steps — no Dockerfile is needed for Railway (the Dockerfiles still exist for local `docker-compose`).
