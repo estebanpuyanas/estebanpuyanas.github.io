@@ -279,10 +279,10 @@ export default function TravelsMap({
     if (!locOpen || locResults.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setLocHighlightIdx((i: number) => Math.min(i + 1, locResults.length - 1));
+      setLocHighlightIdx(Math.min(locHighlightIdx + 1, locResults.length - 1));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setLocHighlightIdx((i: number) => Math.max(i - 1, 0));
+      setLocHighlightIdx(Math.max(locHighlightIdx - 1, 0));
     } else if (e.key === "Enter") {
       e.preventDefault();
       const idx = locHighlightIdx >= 0 ? locHighlightIdx : 0;
