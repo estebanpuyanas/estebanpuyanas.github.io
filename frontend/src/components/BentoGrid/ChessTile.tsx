@@ -233,7 +233,7 @@ export default function ChessTile() {
               theme={CALENDAR_THEME}
               colorScheme="dark"
               blockSize={10}
-              blockGap={2}
+              blockMargin={2}
               blockRadius={2}
               fontSize={10}
               showWeekdayLabels
