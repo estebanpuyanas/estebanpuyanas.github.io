@@ -1,0 +1,51 @@
+# LLM training crawlers — blocked entirely.
+# Travel photos contain other people who have not consented to AI training data use.
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+# All other crawlers — block travels and admin.
+# /travels loads photos of real people from the DB; /admin should never be indexed.
+
+User-agent: *
+Disallow: /travels
+Disallow: /admin
