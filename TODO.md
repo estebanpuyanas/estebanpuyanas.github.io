@@ -25,6 +25,7 @@
 
 # Fullstack
 - [ ] GitHub projects page.
+- [ ] Fix logic in lichess heatmap. Seems like only shows the games played in last couple days?
 
 # Security
 - [ ] Validate `ADMIN_TOKEN` at startup in `main.go` with `log.Fatal` if unset (same pattern as `DATABASE_URL` and `LASTFM_API_KEY`). Pass it into `AdminMiddleware` as a parameter instead of calling `os.Getenv` on every request.
