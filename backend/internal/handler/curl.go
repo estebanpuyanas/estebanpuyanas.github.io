@@ -191,13 +191,13 @@ func buildIndexPage(host string) string {
 	sb.WriteString("\n")
 
 	cmdLine := func(cmd, desc string) {
-		sb.WriteString(fmt.Sprintf("  %s$ curl%s %s%-35s%s  %s%s%s\n",
+		sb.WriteString(fmt.Sprintf("  %s$ curl -L%s %s%-48s%s  %s%s%s\n",
 			ansiGreen, ansiReset,
 			ansiDim, cmd, ansiReset,
 			ansiGray, desc, ansiReset))
 	}
 
-	cmdLine(host, "this page")
+	cmdLine(host+"/curl", "this page")
 	cmdLine(host+"/curl/music", "what i'm listening to right now")
 	cmdLine(host+"/curl/travels", "places i've been")
 	sb.WriteString("\n")
