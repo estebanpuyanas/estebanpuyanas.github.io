@@ -1,7 +1,5 @@
 package model
 
-// ── Clean output types (returned to the frontend) ───────────────────────
-
 // LichessPerf holds per-time-control performance stats.
 type LichessPerf struct {
 	Games  int  `json:"games"`
@@ -11,7 +9,6 @@ type LichessPerf struct {
 	Prov   bool `json:"prov,omitempty"`
 }
 
-// LichessUser is the clean output shape for chess tile user stats.
 type LichessUser struct {
 	Perfs struct {
 		Bullet    *LichessPerf `json:"bullet,omitempty"`
@@ -41,12 +38,10 @@ type LichessGame struct {
 	ID           string `json:"id"`
 	Speed        string `json:"speed"`
 	CreatedAt    int64  `json:"createdAt"`
-	Result       string `json:"result"` // "win" | "loss" | "draw"
+	Result       string `json:"result"`
 	OpponentName string `json:"opponentName"`
 	Opening      string `json:"opening,omitempty"`
 }
-
-// ── Raw Lichess API shapes (used only inside the service) ────────────────
 
 // LichessRawPlayer is the raw player object inside a Lichess NDJSON game.
 type LichessRawPlayer struct {
