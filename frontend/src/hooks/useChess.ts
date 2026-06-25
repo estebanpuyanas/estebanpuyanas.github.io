@@ -15,6 +15,8 @@ export interface ChessState {
   recentGames: LichessGame[];
   loading: boolean;
   error: boolean;
+  activityLoading: boolean;
+  activityError: boolean;
 }
 
 function countToLevel(count: number): 0 | 1 | 2 | 3 | 4 {
@@ -57,21 +59,34 @@ export function useChess(): ChessState {
   const [recentGames, setRecentGames] = useState<LichessGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [activityError, setActivityError] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      getLichessUser(),
-      getLichessActivity(),
-      getLichessRecentGames(5),
-    ])
-      .then(([userData, activity, games]) => {
+    // User stats + recent games are fast — fire together, render immediately.
+    Promise.all([getLichessUser(), getLichessRecentGames(5)])
+      .then(([userData, games]) => {
         setUser(userData);
-        setActivityData(buildActivityData(activity));
         setRecentGames(games);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+
+    // Activity can be slow on a cache cold-start — independent so it never
+    // blocks the game cards or rating values from rendering.
+    getLichessActivity()
+      .then((activity) => setActivityData(buildActivityData(activity)))
+      .catch(() => setActivityError(true))
+      .finally(() => setActivityLoading(false));
   }, []);
 
-  return { user, activityData, recentGames, loading, error };
+  return {
+    user,
+    activityData,
+    recentGames,
+    loading,
+    error,
+    activityLoading,
+    activityError,
+  };
 }

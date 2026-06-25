@@ -451,6 +451,19 @@
   fill: var(--text-3) !important;
 }
 
+.bento-heatmap-unavailable {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  opacity: 0.6;
+}
+
 /* ─── Custom legend row (below the scroll, never clipped by it) ── */
 .bento-heatmap-footer {
   display: flex;
