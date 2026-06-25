@@ -17,11 +17,7 @@ function getSavedMode(): ThemeMode {
     if (saved === "light" || saved === "dark" || saved === "system")
       return saved;
   } catch {
-    // eslint-disable-next-line no-console
-    if (import.meta.env.DEV)
-      console.warn(
-        "[useTheme] localStorage read failed, falling back to system",
-      );
+    // ignore localStorage read failures
   }
   return "system";
 }
@@ -50,9 +46,7 @@ export function useTheme() {
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // eslint-disable-next-line no-console
-      if (import.meta.env.DEV)
-        console.warn("[useTheme] localStorage write failed");
+      // ignore localStorage write failures
     }
     setModeState(next);
   };
