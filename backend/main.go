@@ -65,7 +65,7 @@ func main() {
 	curlHandler := handler.NewCurlHandler(lastfmSvc, travelPinSvc)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", curlHandler.Index)
+	mux.HandleFunc("/", curlHandler.Index)
 	mux.HandleFunc("GET /curl/music", curlHandler.Music)
 	mux.HandleFunc("GET /curl/travels", curlHandler.Travels)
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
