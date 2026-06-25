@@ -51,7 +51,9 @@ function buildActivityData(activity: LichessActivityDay[]): Activity[] {
 
 export function useChess(): ChessState {
   const [user, setUser] = useState<LichessUser | null>(null);
-  const [activityData, setActivityData] = useState<Activity[]>([]);
+  const [activityData, setActivityData] = useState<Activity[]>(() =>
+    buildActivityData([]),
+  );
   const [recentGames, setRecentGames] = useState<LichessGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

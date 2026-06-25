@@ -20,7 +20,12 @@
 
 # Misc
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
- - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
+ - [ ] Fixed deployed `curl` not really showing the correct response. curious why.
 
 # Fullstack
 - [ ] GitHub projects page.
+
+# Security
+- [ ] Validate `ADMIN_TOKEN` at startup in `main.go` with `log.Fatal` if unset (same pattern as `DATABASE_URL` and `LASTFM_API_KEY`). Pass it into `AdminMiddleware` as a parameter instead of calling `os.Getenv` on every request.
+- [ ] Restrict `Access-Control-Allow-Origin` to the frontend's deployed origin once stable, rather than `*`. Especially unnecessary for admin endpoints.
+- [ ] Add `http.MaxBytesReader` to the blog post JSON handlers (`CreatePost`, `UpdatePost`) to cap request body size (e.g. 1 MB).

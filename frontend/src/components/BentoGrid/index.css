@@ -479,11 +479,21 @@
   flex-shrink: 0;
 }
 
-.bento-heatmap-legend-block--0 { background: var(--bg-3); }
-.bento-heatmap-legend-block--1 { background: var(--chess-heat-1); }
-.bento-heatmap-legend-block--2 { background: var(--chess-heat-2); }
-.bento-heatmap-legend-block--3 { background: var(--chess-heat-3); }
-.bento-heatmap-legend-block--4 { background: var(--accent); }
+.bento-heatmap-legend-block--0 {
+  background: var(--bg-3);
+}
+.bento-heatmap-legend-block--1 {
+  background: var(--chess-heat-1);
+}
+.bento-heatmap-legend-block--2 {
+  background: var(--chess-heat-2);
+}
+.bento-heatmap-legend-block--3 {
+  background: var(--chess-heat-3);
+}
+.bento-heatmap-legend-block--4 {
+  background: var(--accent);
+}
 
 /* ── Recent games (right column, horizontal cards) ─────────── */
 .bento-games {

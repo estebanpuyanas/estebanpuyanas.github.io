@@ -738,12 +738,18 @@ export default function AdminTravelsPage() {
     <div className="admin-layout">
       <div className="admin-header">
         <div className="admin-header-left">
-          <Link to="/admin" className="admin-btn admin-btn--ghost">← admin</Link>
+          <Link to="/admin" className="admin-btn admin-btn--ghost">
+            ← admin
+          </Link>
           <span className="admin-header-label">// travel pins</span>
         </div>
         <div className="admin-header-right">
-          <Link to="/admin/music" className="admin-btn admin-btn--ghost">music →</Link>
-          <button className="admin-btn admin-btn--ghost" onClick={handleLogout}>log out</button>
+          <Link to="/admin/music" className="admin-btn admin-btn--ghost">
+            music →
+          </Link>
+          <button className="admin-btn admin-btn--ghost" onClick={handleLogout}>
+            log out
+          </button>
         </div>
       </div>
 

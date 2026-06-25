@@ -10,18 +10,22 @@ export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [notFound, setNotFound] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
+
+  const loading = slug != null && loadedSlug !== slug;
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    setNotFound(false);
     getPost(slug)
-      .then(setPost)
+      .then((p) => {
+        setPost(p);
+        setNotFound(false);
+      })
       .catch((err: Error) => {
+        setPost(null);
         if (err.message === "not found") setNotFound(true);
       })
-      .finally(() => setLoading(false));
+      .finally(() => setLoadedSlug(slug));
   }, [slug]);
 
   return (
