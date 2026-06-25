@@ -186,7 +186,15 @@ function GameCard({
 }
 
 export default function ChessTile() {
-  const { user, activityData, recentGames, loading, error } = useChess();
+  const {
+    user,
+    activityData,
+    recentGames,
+    loading,
+    error,
+    activityLoading,
+    activityError,
+  } = useChess();
 
   return (
     <div className="bento-tile bento-chess">
@@ -205,23 +213,29 @@ export default function ChessTile() {
             )}
           </div>
 
-          <div className="bento-heatmap-scroll">
-            <ActivityCalendar
-              data={activityData}
-              loading={loading}
-              theme={CALENDAR_THEME}
-              colorScheme="dark"
-              blockSize={10}
-              blockMargin={2}
-              blockRadius={2}
-              fontSize={10}
-              showWeekdayLabels
-              showColorLegend={false}
-              showTotalCount={false}
-              labels={{ weekdays: ["S", "M", "T", "W", "T", "F", "S"] }}
-              style={{ fontFamily: "var(--font-mono)" }}
-            />
-          </div>
+          {activityError ? (
+            <div className="bento-heatmap-unavailable">
+              chess activity temporarily unavailable
+            </div>
+          ) : (
+            <div className="bento-heatmap-scroll">
+              <ActivityCalendar
+                data={activityData}
+                loading={activityLoading}
+                theme={CALENDAR_THEME}
+                colorScheme="dark"
+                blockSize={10}
+                blockMargin={2}
+                blockRadius={2}
+                fontSize={10}
+                showWeekdayLabels
+                showColorLegend={false}
+                showTotalCount={false}
+                labels={{ weekdays: ["S", "M", "T", "W", "T", "F", "S"] }}
+                style={{ fontFamily: "var(--font-mono)" }}
+              />
+            </div>
+          )}
 
           {/* Legend sits outside the scroll wrapper so it can never be clipped by it */}
           <div className="bento-heatmap-footer">
@@ -234,7 +248,7 @@ export default function ChessTile() {
             ))}
             <span className="bento-heatmap-footer-label">More</span>
             <span className="bento-heatmap-footer-spacer" />
-            {!loading && !error && (
+            {!activityLoading && !activityError && (
               <span className="bento-heatmap-footer-label">
                 {activityData.reduce((s, d) => s + d.count, 0).toLocaleString()}{" "}
                 games this year

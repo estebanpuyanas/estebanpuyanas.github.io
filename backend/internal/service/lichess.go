@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"lastfm/api/internal/model"
@@ -12,16 +13,126 @@ import (
 
 const lichessBaseURL = "https://lichess.org/api"
 
+const (
+	activityCacheTTL = 55 * time.Minute
+	userCacheTTL     = 5 * time.Minute
+)
+
 type LichessService struct {
-	username string
+	username   string
+	httpClient *http.Client
+
+	activityMu   sync.RWMutex
+	activityDays []model.LichessActivityDay
+	activityAt   time.Time
+
+	userMu  sync.RWMutex
+	userVal *model.LichessUser
+	userAt  time.Time
+
+	// Closed once the initial activity prewarm completes (success or failure).
+	// Subsequent reads on a closed channel return immediately, so all callers
+	// that arrive after the first fetch never block here.
+	prewarmDone chan struct{}
 }
 
 func NewLichessService(username string) *LichessService {
-	return &LichessService{username: username}
+	s := &LichessService{
+		username:    username,
+		httpClient:  &http.Client{Timeout: 120 * time.Second},
+		prewarmDone: make(chan struct{}),
+	}
+	go s.prewarmAndRefresh()
+	return s
 }
 
-// GetUser fetches the user's performance stats and total game counts.
+// prewarmAndRefresh fetches activity once at startup, signals prewarmDone,
+// then refreshes on a ticker so the cache never goes stale mid-session.
+func (s *LichessService) prewarmAndRefresh() {
+	s.refreshActivity()
+	close(s.prewarmDone)
+
+	ticker := time.NewTicker(activityCacheTTL)
+	defer ticker.Stop()
+	for range ticker.C {
+		s.refreshActivity()
+	}
+}
+
+func (s *LichessService) refreshActivity() {
+	days, err := s.fetchActivity()
+	if err != nil {
+		return
+	}
+	s.activityMu.Lock()
+	s.activityDays = days
+	s.activityAt = time.Now()
+	s.activityMu.Unlock()
+}
+
+// GetActivity returns per-day game counts for the rolling 52-week heatmap.
+//
+// Hot path (cache populated): returns immediately from memory.
+// Stale path (TTL exceeded but cache exists): returns old data immediately;
+//
+//	the background ticker is already fetching fresh data.
+//
+// Cold path (server just started, prewarm still running): blocks until the
+//
+//	initial fetch completes, then returns the result.
+func (s *LichessService) GetActivity() ([]model.LichessActivityDay, error) {
+	s.activityMu.RLock()
+	hasCache := s.activityDays != nil
+	s.activityMu.RUnlock()
+
+	if !hasCache {
+		// Block until the prewarm goroutine finishes its first fetch.
+		// After close(), every subsequent read returns immediately.
+		<-s.prewarmDone
+	}
+
+	s.activityMu.RLock()
+	days := s.activityDays
+	s.activityMu.RUnlock()
+
+	if days != nil {
+		return days, nil
+	}
+
+	// Prewarm failed (Lichess unreachable at startup) — try once synchronously.
+	return s.fetchActivity()
+}
+
+// GetUser fetches user performance stats with a 5-minute in-memory cache.
+// Returns stale data on fetch error rather than propagating the failure.
 func (s *LichessService) GetUser() (*model.LichessUser, error) {
+	s.userMu.RLock()
+	if s.userVal != nil && time.Since(s.userAt) < userCacheTTL {
+		u := s.userVal
+		s.userMu.RUnlock()
+		return u, nil
+	}
+	s.userMu.RUnlock()
+
+	user, err := s.fetchUser()
+	if err != nil {
+		s.userMu.RLock()
+		stale := s.userVal
+		s.userMu.RUnlock()
+		if stale != nil {
+			return stale, nil
+		}
+		return nil, err
+	}
+
+	s.userMu.Lock()
+	s.userVal = user
+	s.userAt = time.Now()
+	s.userMu.Unlock()
+	return user, nil
+}
+
+func (s *LichessService) fetchUser() (*model.LichessUser, error) {
 	url := fmt.Sprintf("%s/user/%s", lichessBaseURL, s.username)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -29,7 +140,7 @@ func (s *LichessService) GetUser() (*model.LichessUser, error) {
 	}
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("lichess user fetch: %w", err)
 	}
@@ -46,9 +157,7 @@ func (s *LichessService) GetUser() (*model.LichessUser, error) {
 	return &user, nil
 }
 
-// GetActivity fetches games for the rolling 52-week window and returns
-// per-day game counts — the same data shape the GitHub contribution heatmap uses.
-func (s *LichessService) GetActivity() ([]model.LichessActivityDay, error) {
+func (s *LichessService) fetchActivity() ([]model.LichessActivityDay, error) {
 	since := time.Now().Add(-52 * 7 * 24 * time.Hour).UnixMilli()
 	url := fmt.Sprintf(
 		"%s/games/user/%s?since=%d&moves=false&clocks=false&evals=false&opening=false",
@@ -61,7 +170,7 @@ func (s *LichessService) GetActivity() ([]model.LichessActivityDay, error) {
 	}
 	req.Header.Set("Accept", "application/x-ndjson")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("lichess activity fetch: %w", err)
 	}
@@ -73,6 +182,7 @@ func (s *LichessService) GetActivity() ([]model.LichessActivityDay, error) {
 
 	dayCounts := make(map[string]int)
 	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 512*1024), 512*1024)
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		if len(line) == 0 {
@@ -112,7 +222,7 @@ func (s *LichessService) GetRecentGames(max int) ([]model.LichessGame, error) {
 	}
 	req.Header.Set("Accept", "application/x-ndjson")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("lichess recent games fetch: %w", err)
 	}
@@ -124,6 +234,7 @@ func (s *LichessService) GetRecentGames(max int) ([]model.LichessGame, error) {
 
 	var games []model.LichessGame
 	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 512*1024), 512*1024)
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		if len(line) == 0 {
