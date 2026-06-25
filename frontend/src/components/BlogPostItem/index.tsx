@@ -12,7 +12,9 @@ export default function BlogPostItem({ post }: { post: BlogPost }) {
             ↓ Read
           </Link>
         </div>
-        <span className="blog-date">{new Date(post.createdAt).toLocaleDateString()}</span>
+        <span className="blog-date">
+          {new Date(post.createdAt).toLocaleDateString()}
+        </span>
       </div>
     </div>
   );

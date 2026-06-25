@@ -212,8 +212,13 @@ export default function AdminMusicPage() {
                   ← back to list
                 </button>
               )}
-              <Link to="/admin/travels" className="admin-btn admin-btn--ghost">travels →</Link>
-              <button className="admin-btn admin-btn--ghost" onClick={handleLogout}>
+              <Link to="/admin/travels" className="admin-btn admin-btn--ghost">
+                travels →
+              </Link>
+              <button
+                className="admin-btn admin-btn--ghost"
+                onClick={handleLogout}
+              >
                 log out
               </button>
             </div>

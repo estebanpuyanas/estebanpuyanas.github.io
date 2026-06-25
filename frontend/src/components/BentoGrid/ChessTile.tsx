@@ -152,37 +152,18 @@ const PERF_DISPLAY: {
   { key: "puzzle", label: "Puzzle", Icon: PuzzleIcon },
 ];
 
-/* ── Game helpers ───────────────────────────────────────────── */
-
-function gameResult(
-  game: LichessGame,
-  username: string,
-): "win" | "loss" | "draw" {
-  if (!game.winner) return "draw";
-  const myColor = game.players.white.user?.id === username ? "white" : "black";
-  return game.winner === myColor ? "win" : "loss";
-}
-
-function opponent(game: LichessGame, username: string): string {
-  const isWhite = game.players.white.user?.id === username;
-  const opp = isWhite ? game.players.black : game.players.white;
-  return opp.user?.name ?? "Anon";
-}
-
 /* ── Game card ──────────────────────────────────────────────── */
 
 function GameCard({
   game,
-  username,
   isMostRecent,
 }: {
   game: LichessGame;
-  username: string;
   isMostRecent: boolean;
 }) {
-  const result = gameResult(game, username);
-  const opp = opponent(game, username);
-  const opening = game.opening?.name ?? "—";
+  const result = game.result;
+  const opp = game.opponentName;
+  const opening = game.opening ?? "—";
 
   return (
     <a
@@ -203,8 +184,6 @@ function GameCard({
     </a>
   );
 }
-
-const VITE_USERNAME = import.meta.env.VITE_LICHESS_USERNAME as string;
 
 export default function ChessTile() {
   const { user, activityData, recentGames, loading, error } = useChess();
@@ -276,12 +255,7 @@ export default function ChessTile() {
                   />
                 ))
               : recentGames.map((g, i) => (
-                  <GameCard
-                    key={g.id ?? i}
-                    game={g}
-                    username={VITE_USERNAME}
-                    isMostRecent={i === 0}
-                  />
+                  <GameCard key={g.id ?? i} game={g} isMostRecent={i === 0} />
                 ))}
           </div>
         </div>

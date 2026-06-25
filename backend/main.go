@@ -49,6 +49,13 @@ func main() {
 	lastfmSvc := service.NewLastFMService(lastFMAPIKey, lastFMUsername)
 	lastfmHandler := handler.NewLastFMHandler(lastfmSvc)
 
+	lichessUsername := os.Getenv("LICHESS_USERNAME")
+	if lichessUsername == "" {
+		log.Println("warning: LICHESS_USERNAME not set — chess endpoints unavailable")
+	}
+	lichessSvc := service.NewLichessService(lichessUsername)
+	lichessHandler := handler.NewLichessHandler(lichessSvc)
+
 	travelPinSvc := service.NewTravelPinService(database, cloudinarySvc)
 	travelPinHandler := handler.NewTravelPinHandler(travelPinSvc)
 
@@ -62,6 +69,9 @@ func main() {
 	mux.HandleFunc("GET /curl/music", curlHandler.Music)
 	mux.HandleFunc("GET /curl/travels", curlHandler.Travels)
 	mux.HandleFunc("GET /api/music/recent-tracks", lastfmHandler.GetRecentTracks)
+	mux.HandleFunc("GET /api/chess/user", lichessHandler.GetUser)
+	mux.HandleFunc("GET /api/chess/activity", lichessHandler.GetActivity)
+	mux.HandleFunc("GET /api/chess/recent-games", lichessHandler.GetRecentGames)
 	mux.HandleFunc("/api/travel/pins", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:

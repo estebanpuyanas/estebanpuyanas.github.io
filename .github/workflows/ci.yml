@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: vet
+        run: cd backend && go vet ./...
+
+      - name: fmt
+        run: |
+          files=$(cd backend && gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "These files need gofmt:"
+            echo "$files"
+            exit 1
+          fi
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: install
+        run: cd frontend && npm ci
+
+      - name: typecheck
+        run: cd frontend && npx tsc --noEmit
+
+      - name: lint
+        run: cd frontend && npm run lint
+
+      - name: fmt
+        run: cd frontend && npx prettier --check "src/**/*.{ts,tsx,css}"

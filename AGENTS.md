@@ -14,7 +14,7 @@ Personal website with two workspaces:
 | `frontend` | `frontend/` | React 19 + Vite + TypeScript SPA |
 | `backend` | `backend/` | Go HTTP API (stdlib `net/http`) |
 
-The frontend is a static SPA. The backend serves travel pin data (stored in SQLite), proxies Last.fm, and fetches Cloudinary image URLs. Both are deployed independently on Railway via Railpack.
+The frontend is a static SPA. The backend is the single gateway for all external API calls (third-party services are never contacted directly from the browser), stores travel pin data in PostgreSQL (Neon), and manages Cloudinary media. Both are deployed independently on Render.
 
 ---
 
@@ -48,16 +48,16 @@ make dev                    # shortcut
 
 **Frontend (`frontend/.env`)**
 - `VITE_API_BASE_URL` — backend base URL, e.g. `http://localhost:8080`
-- `VITE_MAPTILER_API_KEY` — MapTiler key for the travels map
 
 **Backend (`backend/.env`)**
 - `LASTFM_API_KEY` — required
 - `LASTFM_USERNAME` — required
+- `LICHESS_USERNAME` — required; Lichess public username for chess tile
 - `CLOUDINARY_CLOUD_NAME` — required for travel pin images
 - `CLOUDINARY_API_KEY` — required for travel pin images
 - `CLOUDINARY_API_SECRET` — required for travel pin images
-- `ADMIN_TOKEN` — required; protects `POST /api/travel/pins` and `DELETE /api/travel/pins/:id`
-- `DB_PATH` — optional; path to SQLite file, defaults to `./travels.db`
+- `ADMIN_TOKEN` — required; protects write endpoints under `/api/admin/`
+- `DATABASE_URL` — required; Neon PostgreSQL connection string
 - `PORT` — optional, defaults to `8080`
 
 ---
@@ -67,6 +67,9 @@ make dev                    # shortcut
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/api/music/recent-tracks?limit=N` | — | Last.fm recent scrobbles (max 50) |
+| `GET` | `/api/chess/user` | — | Lichess user stats and ratings |
+| `GET` | `/api/chess/activity` | — | Per-day game counts for the rolling 52-week heatmap |
+| `GET` | `/api/chess/recent-games?max=N` | — | Last N games with result and opponent pre-computed (max 20) |
 | `GET` | `/api/travel/pins` | — | All travel pins without images |
 | `POST` | `/api/travel/pins` | Bearer | Create a pin |
 | `DELETE` | `/api/travel/pins/:id` | Bearer | Delete a pin |
@@ -88,7 +91,7 @@ src/data/       → static data (no network)
 ```
 
 **Services** (`src/services/`) — one file per backend resource, named `<domain>Service.ts`.
-Call `fetch`. No state, no hooks, no React. Return typed data or throw.
+Call `fetch` against `VITE_API_BASE_URL`. No state, no hooks, no React. Return typed data or throw.
 Example: `travelPinService.ts` exports `getPins()`, `getPinImages(id)`, `createPin()`, `deletePin()`.
 
 **Hooks** (`src/hooks/`) — own state and side effects.
@@ -138,12 +141,6 @@ Services receive infrastructure clients (DB, Cloudinary) via constructor injecti
 **Models** (`internal/model/`) — Go structs only. No methods, no logic.
 Two layers: raw API shapes (e.g. `LastFMRecentTracksResponse`) and clean output types (e.g. `Track`).
 
-### SQLite (travel pins)
-
-`travels.db` stores the `travel_pins` table. Schema is auto-migrated in `internal/db/db.go` on startup.
-Locally the file lives at `./travels.db` (relative to the `backend/` dir).
-In production (Railway), set `DB_PATH=/data/travels.db` and attach a Railway Volume at `/data` so the file survives redeployment.
-
 ---
 
 ## Data Migration (SQLite → Neon Postgres)
@@ -185,14 +182,16 @@ make clean
 
 ---
 
-## Deployment (Railway + Railpack)
+## Deployment (Render)
 
-Each service has a `railway.toml` at its root that sets `builder = "railpack"`. Railpack auto-detects the language and build steps — no Dockerfile is needed for Railway (the Dockerfiles still exist for local `docker-compose`).
+Both services are deployed on Render as separate web services. Environment variables are set in the Render dashboard per service.
 
 Deploy order matters:
-1. Deploy the **backend** first and note its public Railway URL.
+1. Deploy the **backend** first and note its public Render URL.
 2. Set `VITE_API_BASE_URL` on the **frontend** service to that URL.
 3. Deploy the **frontend** — Vite bakes `VITE_API_BASE_URL` into the bundle at build time.
+
+The Dockerfiles exist for local `docker-compose` only and are not used by Render.
 
 ---
 
@@ -254,6 +253,7 @@ Deploy order matters:
 
 ## Common Gotchas
 
+- **Never call external APIs from the frontend.** All third-party API calls go through the Go backend. Frontend services must only fetch from `VITE_API_BASE_URL`. Calling a third-party host directly from the browser bypasses the backend's role as the single API gateway and breaks the architecture.
 - **Hooks must not return JSX.** Return state and handlers; let the component render.
 - **Never fetch inside a component body.** Always go through a hook (which calls a service).
 - **`var(--nav-height)` is `60px`.** Account for it in any full-height layout (`calc(100vh - var(--nav-height))`).
@@ -262,6 +262,5 @@ Deploy order matters:
 - **Cloudinary images** are served via Cloudinary's CDN using `CloudinarySecureURL`. Never proxy image bytes through the Go backend.
 - **Do NOT use the Cloudinary Admin API to list or look up assets** (`client.Admin.Assets`, `client.Admin.Asset`, etc.). It returns unreliable/empty results even when assets exist, which has previously caused images to appear missing and triggered spurious DB deletions during sync. The only Admin API calls that are acceptable are `RootFolders`/`SubFolders` for the folder combobox in the admin UI. For everything else: use the Upload API (`Upload`, `Destroy`) for write operations, and HEAD requests to the CDN URL to verify whether an asset still exists.
 - **Pin images are lazy-loaded.** `GET /api/travel/pins` returns empty `images: []` for every pin. Images are only fetched when a user clicks a pin, via `GET /api/travel/pins/:id/images`. Do not add eager image fetching back to `GetAllPins` — it makes N Cloudinary API calls on every page load.
-- **`VITE_API_BASE_URL` is a build-time constant.** Changing it in Railway requires a frontend redeploy to take effect.
-- **SQLite on Railway needs a Volume.** Without a Volume mounted at `/data` and `DB_PATH=/data/travels.db`, the database resets on every deploy.
-- **The Dockerfiles exist for local `docker-compose` only.** Railway uses `railway.toml` + Railpack and ignores the Dockerfiles.
+- **`VITE_API_BASE_URL` is a build-time constant.** Changing it in Render requires a frontend redeploy to take effect.
+- **The Dockerfiles exist for local `docker-compose` only.** Render ignores them.

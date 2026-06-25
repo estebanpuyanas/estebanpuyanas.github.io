@@ -22,6 +22,7 @@
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
  - [ ] Figure out why Lichess API only shows that I have played games since May 14 when I have played since before.
  - [ ] Set up basic github actions CI/CD pipeline to run formatting and other basic stuff.
+ - [ ] Fixed deployed `curl` not really showing the correct response. curious why.
 
 # Fullstack
 - [ ] GitHub projects page.
