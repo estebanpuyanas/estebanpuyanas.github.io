@@ -7,7 +7,6 @@
     - [ ] New DB table with foreign keys to pins — cascade delete when a referenced pin is deleted.
     - [ ] CRUD handlers + service layer (GET all routes, POST create, DELETE by id).
 
-
 # Frontend
 - [ ] Add projects from github to projects page.
 - [ ] Fix terminal ascii art it looks so chopped.
@@ -20,7 +19,6 @@
 
 # Misc
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
- - [ ] Fixed deployed `curl` not really showing the correct response. curious why.
 
 # Fullstack
 - [ ] GitHub projects page.
