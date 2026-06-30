@@ -323,10 +323,7 @@ export default function Terminal() {
   const cursorActive = focused;
 
   return (
-    <div
-      className="terminal-wrapper"
-      onClick={focusInput}
-    >
+    <div className="terminal-wrapper" onClick={focusInput}>
       <div className="terminal-title-bar" onClick={(e) => e.stopPropagation()}>
         <span className="terminal-title-text">esteban@portfolio ~ — zsh</span>
       </div>
