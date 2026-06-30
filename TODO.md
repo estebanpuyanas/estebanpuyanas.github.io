@@ -9,7 +9,6 @@
 
 # Frontend
 - [ ] Add projects from github to projects page.
-- [ ] Fix terminal ascii art it looks so chopped.
 - [ ] Remove cursor from terminal when user has not clicked on terminal. Only become active when user clicks on terminal tile.
 - [ ] Travel routes between pins:
     - [ ] Fetch routes from API and render as Leaflet `Polyline` on the travels map.
