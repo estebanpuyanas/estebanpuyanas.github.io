@@ -46,17 +46,14 @@ export default function AboutSection() {
               playing chess, or deep in a record collection — hunting for albums
               worth writing about.
             </p>
+            <br />
+            <p className="about-bio" data-inview data-delay="4">
+              I went to Blair Academy for high school and I'm now at
+              Northeastern for college.
+            </p>
           </div>
 
           <div className="stats-panel">
-            <div className="stat-item" data-inview data-delay="2">
-              <p className="stat-number">2+</p>
-              <p className="stat-label">Internships &amp; Co-ops</p>
-            </div>
-            <div className="stat-item" data-inview data-delay="3">
-              <p className="stat-number">2</p>
-              <p className="stat-label">Languages — English &amp; Spanish</p>
-            </div>
             <div data-inview data-delay="4">
               <p className="stat-label interests-label">Interests</p>
               <div className="pills-row">

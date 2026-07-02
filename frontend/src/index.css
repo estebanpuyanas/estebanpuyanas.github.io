@@ -386,20 +386,6 @@ img {
   gap: 2.5rem;
 }
 
-.stat-item {
-  border-left: 2px solid var(--accent);
-  padding-left: 1.25rem;
-}
-
-.stat-number {
-  font-family: var(--font-display);
-  font-size: 2.75rem;
-  font-weight: 300;
-  color: var(--text);
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
 .stat-label {
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -428,54 +414,6 @@ img {
   background: var(--accent-dim);
   padding: 0.35rem 0.85rem;
   border-radius: 2px;
-}
-
-/* ─── Education ──────────────────────────────────────────────── */
-.edu-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5px;
-  background: var(--border);
-  border: 1px solid var(--border);
-}
-
-.edu-card {
-  background: var(--bg);
-  padding: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.edu-institution {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.edu-degree {
-  font-family: var(--font-display);
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  font-weight: 300;
-  color: var(--text);
-  line-height: 1.2;
-}
-
-.edu-meta {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  color: var(--text-3);
-}
-
-.edu-desc {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  line-height: 1.75;
-  color: var(--text-2);
-  margin-top: 0.5rem;
 }
 
 /* ─── Experience ─────────────────────────────────────────────── */
@@ -1036,9 +974,6 @@ img {
     gap: 3rem;
   }
   .projects-grid {
-    grid-template-columns: 1fr;
-  }
-  .edu-grid {
     grid-template-columns: 1fr;
   }
   .timeline-item {
