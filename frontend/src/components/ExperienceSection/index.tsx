@@ -3,20 +3,56 @@ import ExperienceItem from "../ExperienceItem";
 
 const EXPERIENCES = [
   {
+    company: "Netcracker Technology",
+    roles: [
+      {
+        title: "Software Solutions Engineer",
+        period: "",
+        location: "",
+        description: "",
+      },
+    ],
+  },
+  {
+    company: "Northeastern University Khoury College of Computer Sciences",
+    roles: [
+      {
+        title: "Teaching Assistant",
+        period: "",
+        location: "",
+        description: "",
+      },
+      {
+        title: "Peer Mentor",
+        period: "",
+        location: "",
+        description: "",
+      },
+    ],
+  },
+  {
     company: "EnviroLogix Inc.",
-    role: "Software Engineer Intern",
-    period: "May – Aug 2025",
-    location: "Portland, ME",
-    description:
-      "R&D software development focused on building testing automation tools for the company's C++ embedded systems. Created documentation and maintenance systems for embedded software and other internal projects.",
+    roles: [
+      {
+        title: "Software Engineer Intern",
+        period: "May – Aug 2025",
+        location: "Portland, ME",
+        description:
+          "R&D software development focused on building testing automation tools for the company's C++ embedded systems. Created documentation and maintenance systems for embedded software and other internal projects.",
+      },
+    ],
   },
   {
     company: "Logica GHL",
-    role: "Data Architecture Engineer Co-Op",
-    period: "Aug – Dec 2024",
-    location: "Bogotá, Colombia",
-    description:
-      "Collaborated with the engineering team to develop data infrastructure and pipelines, modernizing the company's information processing and management systems.",
+    roles: [
+      {
+        title: "Data Architecture Engineer Co-Op",
+        period: "Aug – Dec 2024",
+        location: "Bogotá, Colombia",
+        description:
+          "Collaborated with the engineering team to develop data infrastructure and pipelines, modernizing the company's information processing and management systems.",
+      },
+    ],
   },
 ];
 
