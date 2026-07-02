@@ -25,7 +25,7 @@ const EXPERIENCES = [
           "Worked alongside a team of 10+ teaching assistants to support a summer session of CS3000, a core course in the computer science curriculum. Responsibilities included holding office hours for  135+ students, lead recitation sessions for 25+ students, held individualized tutoring sessions, and assited with overall grading, material proofreading, and course management.",
       },
       {
-        title: "Peer Mentor",
+        title: "Co-Op Peer Mentor",
         period: "August - May 2026",
         location: "Boston, MA, USA",
         description:
