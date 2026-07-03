@@ -687,6 +687,14 @@ img {
   border-bottom-color: var(--accent);
 }
 
+.projects-error {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  padding: 3rem 0;
+}
+
 /* ─── Music / Blog ───────────────────────────────────────────── */
 .music-status {
   font-family: var(--font-mono);
