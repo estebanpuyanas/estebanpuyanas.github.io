@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTravelPins } from "../../hooks/useTravelPins";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 
 const CARTO_VOYAGER =
   "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png";
@@ -35,6 +36,7 @@ function FillWorldMini() {
 export default function TravelTile() {
   const navigate = useNavigate();
   const { pins, loading } = useTravelPins();
+  const slow = useSlowLoad(loading);
   const countryCount = new Set(pins.map((p) => p.country).filter(Boolean)).size;
 
   return (
@@ -45,6 +47,11 @@ export default function TravelTile() {
       aria-label="Go to travels page"
     >
       <div className="bento-travel-map-wrap">
+        {loading && (
+          <div className="bento-status">
+            {slow ? "waking up server…" : "loading..."}
+          </div>
+        )}
         {!loading && (
           <MapContainer
             center={[20, 0]}

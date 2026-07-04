@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { ActivityCalendar } from "react-activity-calendar";
 import { useChess } from "../../hooks/useChess";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 import type { LichessGame } from "../../services/lichessService";
 
 // CSS variables used here adapt to light/dark via [data-theme] in index.css.
@@ -195,6 +196,7 @@ export default function ChessTile() {
     activityLoading,
     activityError,
   } = useChess();
+  const slow = useSlowLoad(loading);
 
   return (
     <div className="bento-tile bento-chess">
@@ -259,7 +261,9 @@ export default function ChessTile() {
 
         {/* Right: 5 game cards, horizontal */}
         <div className="bento-games">
-          <span className="bento-games-header">recent games</span>
+          <span className="bento-games-header">
+            {loading && slow ? "waking up server…" : "recent games"}
+          </span>
           <div className="bento-games-row">
             {loading
               ? Array.from({ length: 5 }).map((_, i) => (

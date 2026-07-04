@@ -4,10 +4,12 @@ import Footer from "../Footer";
 import TravelsMap, { type TravelMarker } from "../TravelsMap";
 import PinModal from "../PinModal";
 import { useTravelPins } from "../../hooks/useTravelPins";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 import type { Pin } from "../../services/travelPinService";
 
 export default function TravelsPage() {
-  const { pins } = useTravelPins();
+  const { pins, loading } = useTravelPins();
+  const slow = useSlowLoad(loading);
   const [selectedPin, setSelectedPin] = useState<Pin | null>(null);
 
   const markers: TravelMarker[] = pins.map((p) => ({
@@ -32,6 +34,8 @@ export default function TravelsPage() {
           label="// travels"
           markers={markers}
           onMarkerClick={handleMarkerClick}
+          loading={loading}
+          slowLoading={slow}
         />
       </div>
       <Footer />
