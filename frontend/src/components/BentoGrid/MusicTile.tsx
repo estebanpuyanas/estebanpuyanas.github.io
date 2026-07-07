@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBentoMusic } from "../../hooks/useBentoMusic";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 
 const FALLBACK_ART = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%232a2a37'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='48' fill='%23363646'%3E%E2%99%AA%3C/text%3E%3C/svg%3E`;
 
 export default function MusicTile() {
   const navigate = useNavigate();
   const { track, loading } = useBentoMusic();
+  const slow = useSlowLoad(loading);
   const [rec, setRec] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -27,7 +29,11 @@ export default function MusicTile() {
     >
       <span className="bento-label">// music</span>
 
-      {loading && <div className="bento-status">loading...</div>}
+      {loading && (
+        <div className="bento-status">
+          {slow ? "waking up server…" : "loading..."}
+        </div>
+      )}
 
       {!loading && !track && (
         <div className="bento-status">nothing playing</div>

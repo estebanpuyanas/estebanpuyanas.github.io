@@ -7,23 +7,19 @@
     - [ ] New DB table with foreign keys to pins — cascade delete when a referenced pin is deleted.
     - [ ] CRUD handlers + service layer (GET all routes, POST create, DELETE by id).
 
-
 # Frontend
-- [ ] Add projects from github to projects page.
-- [ ] Fix terminal ascii art it looks so chopped.
-- [ ] Remove cursor from terminal when user has not clicked on terminal. Only become active when user clicks on terminal tile.
 - [ ] Travel routes between pins:
     - [ ] Fetch routes from API and render as Leaflet `Polyline` on the travels map.
     - [ ] Distinct visual style per mode — e.g. solid line for driving, dashed for boat, dotted + lighter for plane.
     - [ ] Toggle button in map header to show/hide routes (hidden by default to avoid clutter).
     - [ ] Admin panel: new panel mode to create a route — pick from/to from existing pins via dropdowns, select mode, save. Also support deleting routes from the selected-pin panel.
+- [ ] Increase size of modal when editing images.
+- [ ] Change image cropping so you can select from specific corner to crop rather than just from center.
 
 # Misc
  - [ ] Change bullet icon in chess tile in home page to look more like a bullet.
- - [ ] Fixed deployed `curl` not really showing the correct response. curious why.
 
 # Fullstack
-- [ ] GitHub projects page.
 
 # Security
 - [ ] Validate `ADMIN_TOKEN` at startup in `main.go` with `log.Fatal` if unset (same pattern as `DATABASE_URL` and `LASTFM_API_KEY`). Pass it into `AdminMiddleware` as a parameter instead of calling `os.Getenv` on every request.

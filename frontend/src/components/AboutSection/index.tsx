@@ -1,11 +1,16 @@
 import { useInView } from "../../hooks/useInView";
 
 const INTERESTS = [
-  "Software Dev",
-  "Data Engineering",
-  "Embedded Systems",
-  "Philosophy",
+  "Software Engineering",
+  "Free & Open Source Software",
+  "Linux",
+  "Chess",
+  "Cooking",
+  "Weightlifting",
+  "Running",
+  "Squash",
   "Music",
+  "Reading",
 ];
 
 export default function AboutSection() {
@@ -21,43 +26,42 @@ export default function AboutSection() {
         <div className="about-grid">
           <div>
             <p className="about-bio" data-inview data-delay="1">
-              I'm an{" "}
-              <em className="about-bio-strong">aspiring software engineer</em>{" "}
-              pursuing a combined B.S. in{" "}
-              <em className="about-bio-strong">
-                Computer Science &amp; Philosophy
-              </em>{" "}
-              at Northeastern University in Boston, MA.
+              My name is Esteban Puyana. I was born in Bogotá, Colombia, and
+              lived there until about the age of 16, when I moved to New Jersey
+              to attend
+              <a href="https://www.blair.edu"> Blair Academy.</a> After Blair, I
+              moved to Boston to attend{" "}
+              <a href="https://www.northeastern.edu">Northeastern University</a>
+              , where I graduated with a double B.S. in Computer Science and
+              Philosophy.
             </p>
             <br />
             <p className="about-bio" data-inview data-delay="2">
-              I have a deep passion for technology and a strong interest in
-              <em className="about-bio-strong">
-                {" "}
-                software development and data engineering
-              </em>
-              . I love finding elegant solutions to complex systems problems —
-              whether at the level of embedded firmware or distributed data
-              infrastructure.
+              During my time at Northeastern, I worked in technical roles
+              spanning from software/data engineering to teaching assistant for
+              the algorithms and data structures course. I currently work at{" "}
+              <a href="https://www.netcracker.com/">Netcracker Technology</a> as
+              a Software Solutions Engineer.
             </p>
             <br />
             <p className="about-bio" data-inview data-delay="3">
-              Outside of work, you'll find me at the gym, on the squash court,
-              playing chess, or deep in a record collection — hunting for albums
-              worth writing about.
+              I have always been a technology nerd, so outside of work you might
+              find me tinkering with my{" "}
+              <a href="https://www.frame.work/">Framework Laptop</a>, tweaking
+              my{" "}
+              <a href="https://www.github.com/estebanpuyana/dotfiles">
+                dotfiles
+              </a>
+              , or simply building things for fun, curiosity, and learning.
+              <br />
+              <br />
+              When I'm not obsessing over whatever technology project I happen
+              to be working on, I enjoy various forms of exercise
+              (weightlifting, running, squash), cooking, reading, listening to
+              music, and spending time with my friends.
             </p>
-          </div>
 
-          <div className="stats-panel">
-            <div className="stat-item" data-inview data-delay="2">
-              <p className="stat-number">2+</p>
-              <p className="stat-label">Internships &amp; Co-ops</p>
-            </div>
-            <div className="stat-item" data-inview data-delay="3">
-              <p className="stat-number">2</p>
-              <p className="stat-label">Languages — English &amp; Spanish</p>
-            </div>
-            <div data-inview data-delay="4">
+            <div className="interests-block" data-inview data-delay="4">
               <p className="stat-label interests-label">Interests</p>
               <div className="pills-row">
                 {INTERESTS.map((tag) => (
@@ -66,6 +70,18 @@ export default function AboutSection() {
                   </span>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="about-image-stack" data-inview data-delay="2">
+            <div className="about-image-frame">
+              <img src="/vite.svg" alt="placeholder" />
+            </div>
+            <div className="about-image-frame">
+              <img src="/vite.svg" alt="placeholder" />
+            </div>
+            <div className="about-image-frame">
+              <img src="/vite.svg" alt="placeholder" />
             </div>
           </div>
         </div>

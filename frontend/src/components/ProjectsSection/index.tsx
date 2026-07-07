@@ -1,10 +1,39 @@
+import { useState } from "react";
 import { useInView } from "../../hooks/useInView";
-import { useProjectsSection } from "../../hooks/useProjectsSection";
 import ProjectCard from "../ProjectCard";
+
+const PROJECTS = [
+  {
+    name: "Project One",
+    summary: "One-line placeholder description of what this project does.",
+    description:
+      "Longer placeholder description of the project — the problem it solves, how it works, and anything worth calling out about the build.",
+    tech: ["TypeScript", "React"],
+    demoUrl: "#",
+    repoUrl: "https://github.com/estebanpuyanas",
+  },
+  {
+    name: "Project Two",
+    summary: "One-line placeholder description of what this project does.",
+    description:
+      "Longer placeholder description of the project — the problem it solves, how it works, and anything worth calling out about the build.",
+    tech: ["Python"],
+    demoUrl: "#",
+    repoUrl: "https://github.com/estebanpuyanas",
+  },
+  {
+    name: "Project Three",
+    summary: "One-line placeholder description of what this project does.",
+    description:
+      "Longer placeholder description of the project — the problem it solves, how it works, and anything worth calling out about the build.",
+    tech: ["C++", "Embedded"],
+    repoUrl: "https://github.com/estebanpuyanas",
+  },
+];
 
 export default function ProjectsSection() {
   const ref = useInView();
-  const { repos, loading, error } = useProjectsSection();
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
     <section id="projects" ref={ref as React.RefObject<HTMLElement>}>
@@ -13,35 +42,21 @@ export default function ProjectsSection() {
           // projects
         </p>
 
-        {loading && (
-          <div className="projects-grid">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="project-card-skeleton" />
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <p className="projects-error">
-            Could not load repositories.{" "}
-            <a
-              href="https://github.com/estebanpuyanas"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="projects-error-link"
-            >
-              View on GitHub →
-            </a>
-          </p>
-        )}
-
-        {!loading && !error && (
-          <div className="projects-grid" data-inview data-delay="1">
-            {repos.map((repo, i) => (
-              <ProjectCard key={repo.id} repo={repo} index={i} />
-            ))}
-          </div>
-        )}
+        <div className="projects-grid" data-inview data-delay="1">
+          {PROJECTS.map((project, i) => (
+            <ProjectCard
+              key={project.name}
+              project={project}
+              index={i}
+              expanded={expanded === project.name}
+              onToggle={() =>
+                setExpanded((cur) =>
+                  cur === project.name ? null : project.name,
+                )
+              }
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

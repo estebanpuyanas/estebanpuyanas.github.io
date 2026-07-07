@@ -1,9 +1,13 @@
-interface Experience {
-  company: string;
-  role: string;
+interface Role {
+  title: string;
   period: string;
   location: string;
   description: string;
+}
+
+interface Experience {
+  company: string;
+  roles: Role[];
 }
 
 export default function ExperienceItem({
@@ -20,11 +24,19 @@ export default function ExperienceItem({
       </div>
       <div className="timeline-content">
         <p className="timeline-company">{exp.company}</p>
-        <h3 className="timeline-role">{exp.role}</h3>
-        <p className="timeline-meta">
-          {exp.period} · {exp.location}
-        </p>
-        <p className="timeline-desc">{exp.description}</p>
+        {exp.roles.map((role) => (
+          <div className="timeline-role-block" key={role.title}>
+            <h3 className="timeline-role">{role.title}</h3>
+            {(role.period || role.location) && (
+              <p className="timeline-meta">
+                {[role.period, role.location].filter(Boolean).join(" · ")}
+              </p>
+            )}
+            {role.description && (
+              <p className="timeline-desc">{role.description}</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

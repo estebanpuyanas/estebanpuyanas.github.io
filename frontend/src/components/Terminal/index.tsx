@@ -234,7 +234,6 @@ export default function Terminal() {
   const [history, setHistory] = useState<string[]>([]);
   const [, setHistoryIdx] = useState(-1);
   const [focused, setFocused] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -321,15 +320,10 @@ export default function Terminal() {
     [handleSubmit, history, input],
   );
 
-  const cursorActive = focused || hovered;
+  const cursorActive = focused;
 
   return (
-    <div
-      className="terminal-wrapper"
-      onClick={focusInput}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className="terminal-wrapper" onClick={focusInput}>
       <div className="terminal-title-bar" onClick={(e) => e.stopPropagation()}>
         <span className="terminal-title-text">esteban@portfolio ~ — zsh</span>
       </div>

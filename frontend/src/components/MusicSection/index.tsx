@@ -1,5 +1,6 @@
 import { useInView } from "../../hooks/useInView";
 import { useLastFM } from "../../hooks/useLastFM";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 import ScrobbleCarousel from "../ScrobbleCarousel";
 
 export default function MusicSection() {
@@ -13,6 +14,7 @@ export default function MusicSection() {
     loadMore,
     canLoadMore,
   } = useLastFM();
+  const slow = useSlowLoad(loading);
 
   return (
     <section id="music" ref={ref as React.RefObject<HTMLElement>}>
@@ -24,6 +26,12 @@ export default function MusicSection() {
         {loading && (
           <p className="music-status" data-inview>
             loading...
+            {slow && (
+              <span className="slow-hint">
+                This runs on a free-tier server that sleeps when idle — the
+                first load can take up to a minute.
+              </span>
+            )}
           </p>
         )}
         {error && (

@@ -1,50 +1,91 @@
-import { GhIcon, ArrowRight } from "../Icons";
+import { ArrowRight } from "../Icons";
 
-interface GitHubRepo {
-  id: number;
+interface Project {
   name: string;
-  description: string | null;
-  html_url: string;
-  updated_at: string;
-  language: string | null;
-  fork: boolean;
-}
-
-function formatRepoName(name: string): string {
-  return name.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  summary: string;
+  description: string;
+  tech: string[];
+  demoUrl?: string;
+  repoUrl?: string;
 }
 
 export default function ProjectCard({
-  repo,
+  project,
   index,
+  expanded,
+  onToggle,
 }: {
-  repo: GitHubRepo;
+  project: Project;
   index: number;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <a href={repo.html_url} target="_blank" rel="noopener noreferrer">
-      <div className="project-card">
-        <p className="project-num">{String(index + 1).padStart(2, "0")}</p>
-        <h3 className="project-name">{formatRepoName(repo.name)}</h3>
-        {repo.description && <p className="project-desc">{repo.description}</p>}
-        <div className="project-footer">
-          <div className="tech-tags">
-            {repo.language && <span className="tech-tag">{repo.language}</span>}
-            <span className="tech-tag">{formatDate(repo.updated_at)}</span>
+    <div
+      className={`project-card${expanded ? " project-card--expanded" : ""}`}
+      data-inview
+      data-delay={String(Math.min(index + 1, 4))}
+    >
+      <div className="project-cover">
+        <img src="/vite.svg" alt="" />
+      </div>
+
+      <button
+        type="button"
+        className="project-card-trigger"
+        onClick={onToggle}
+        aria-expanded={expanded}
+      >
+        <div className="project-card-header">
+          <div>
+            <p className="project-num">{String(index + 1).padStart(2, "0")}</p>
+            <h3 className="project-name">{project.name}</h3>
           </div>
-          <span className="gh-link">
-            <GhIcon /> <ArrowRight />
+          <span className="project-toggle" aria-hidden="true">
+            +
           </span>
         </div>
+
+        <p className="project-summary">{project.summary}</p>
+
+        <div className="tech-tags">
+          {project.tech.map((tag) => (
+            <span key={tag} className="tech-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </button>
+
+      <div className="project-details">
+        <div className="project-details-inner">
+          <p className="project-desc">{project.description}</p>
+          <div className="project-links">
+            {project.demoUrl && (
+              <a
+                href={project.demoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="project-link"
+                tabIndex={expanded ? 0 : -1}
+              >
+                Live demo <ArrowRight />
+              </a>
+            )}
+            {project.repoUrl && (
+              <a
+                href={project.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="project-link"
+                tabIndex={expanded ? 0 : -1}
+              >
+                View code <ArrowRight />
+              </a>
+            )}
+          </div>
+        </div>
       </div>
-    </a>
+    </div>
   );
 }

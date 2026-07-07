@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import NavBar from "../NavBar";
 import Footer from "../Footer";
 import { getPost, type BlogPost } from "../../services/blogService";
+import { useSlowLoad } from "../../hooks/useSlowLoad";
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,7 @@ export default function BlogPostPage() {
   const [loadedSlug, setLoadedSlug] = useState<string | null>(null);
 
   const loading = slug != null && loadedSlug !== slug;
+  const slow = useSlowLoad(loading);
 
   useEffect(() => {
     if (!slug) return;
@@ -37,7 +39,17 @@ export default function BlogPostPage() {
             ← music
           </Link>
 
-          {loading && <p className="blog-post-loading">loading...</p>}
+          {loading && (
+            <p className="blog-post-loading">
+              loading...
+              {slow && (
+                <span className="slow-hint">
+                  This runs on a free-tier server that sleeps when idle — the
+                  first load can take up to a minute.
+                </span>
+              )}
+            </p>
+          )}
 
           {!loading && notFound && (
             <p className="projects-error">Post not found.</p>

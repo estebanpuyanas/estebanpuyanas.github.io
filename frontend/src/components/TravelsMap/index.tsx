@@ -59,6 +59,8 @@ interface Props {
   onMapClick?: (lat: number, lng: number) => void;
   onLocationSelect?: (lat: number, lng: number) => void;
   pendingPin?: { lat: number; lng: number } | null;
+  loading?: boolean;
+  slowLoading?: boolean;
 }
 
 const CARTO_VOYAGER =
@@ -141,6 +143,8 @@ export default function TravelsMap({
   onMapClick,
   onLocationSelect,
   pendingPin,
+  loading,
+  slowLoading,
 }: Props) {
   const mapRef = useRef<LeafletMap | null>(null);
   const outerRef = useRef<HTMLDivElement>(null);
@@ -290,8 +294,11 @@ export default function TravelsMap({
     }
   };
 
-  const counterText =
-    markers.length === 0
+  const counterText = loading
+    ? slowLoading
+      ? "waking up server…"
+      : "loading…"
+    : markers.length === 0
       ? "no places logged yet"
       : `${markers.length} place${markers.length === 1 ? "" : "s"} logged`;
 
